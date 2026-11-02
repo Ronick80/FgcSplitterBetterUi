@@ -1,0 +1,258 @@
+<Page
+    x:Class="FgcKeyboardSplitter.Views.KeyboardsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:FgcKeyboardSplitter.ViewModels"
+    Title="Keyboards">
+    <Grid Margin="28,20,28,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <ui:TextBlock FontTypography="Title" Text="Keyboards" />
+            <ui:TextBlock
+                Margin="0,4,0,0"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                Text="Start a keyboard to turn it into its own virtual Xbox controller. While it runs, its keys are hidden from other programs."
+                TextWrapping="Wrap" />
+        </StackPanel>
+
+        <!-- Driver warning -->
+        <StackPanel Grid.Row="1" Margin="0,16,0,0">
+            <StackPanel.Style>
+                <Style TargetType="StackPanel">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ShowDriverWarning}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StackPanel.Style>
+            <ui:InfoBar
+                Title="A driver is missing"
+                IsClosable="False"
+                IsOpen="True"
+                Message="Keyboards cannot start until both drivers are installed and active."
+                Severity="Warning" />
+            <ui:Button
+                Margin="0,8,0,0"
+                Appearance="Secondary"
+                Command="{Binding ShowDriversCommand}"
+                Content="Open Drivers page"
+                Icon="{ui:SymbolIcon ShieldCheckmark24}" />
+        </StackPanel>
+
+        <!-- Notices from the engine -->
+        <ItemsControl Grid.Row="2" ItemsSource="{Binding Notices}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="{x:Type vm:Notice}">
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ui:InfoBar
+                            Title="Keyboard stopped"
+                            IsClosable="False"
+                            IsOpen="True"
+                            Message="{Binding Text}"
+                            Severity="Warning" />
+                        <ui:Button
+                            Grid.Column="1"
+                            Margin="8,0,0,0"
+                            VerticalAlignment="Top"
+                            Appearance="Transparent"
+                            Command="{Binding DataContext.DismissNoticeCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                            CommandParameter="{Binding}"
+                            Icon="{ui:SymbolIcon Dismiss24}"
+                            ToolTip="Dismiss" />
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Controller slots -->
+        <ui:Card Grid.Row="3" Margin="0,16,0,12">
+            <StackPanel VerticalAlignment="Center">
+                <ui:TextBlock FontTypography="BodyStrong" Text="Controller slots" />
+                <ItemsControl Margin="0,8,0,6" ItemsSource="{Binding Slots}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:SlotItem}">
+                            <Border Style="{StaticResource SlotPip}" Tag="{Binding Kind}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <ui:TextBlock
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{Binding SlotsText}"
+                    TextWrapping="Wrap" />
+                <ui:TextBlock
+                    Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                    Text="No free slot: Windows supports at most 4 controllers in total.">
+                    <ui:TextBlock.Style>
+                        <Style TargetType="ui:TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SlotsFull}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:TextBlock.Style>
+                </ui:TextBlock>
+            </StackPanel>
+        </ui:Card>
+
+        <!-- List actions -->
+        <StackPanel Grid.Row="4" Margin="0,0,0,12" Orientation="Horizontal">
+            <ui:Button
+                Margin="0,0,8,0"
+                Command="{Binding RefreshCommand}"
+                Content="Refresh list"
+                Icon="{ui:SymbolIcon ArrowSync24}" />
+            <ui:Button
+                Margin="0,0,8,0"
+                Command="{Binding ToggleIdentifyCommand}"
+                Content="{Binding IdentifyButtonText}"
+                Icon="{ui:SymbolIcon Search24}" />
+            <ui:Button
+                Appearance="Danger"
+                Command="{Binding StopAllCommand}"
+                Content="Stop all"
+                Icon="{ui:SymbolIcon Stop24}" />
+        </StackPanel>
+
+        <!-- Keyboard list -->
+        <Grid Grid.Row="5">
+            <ui:ListView
+                ItemsSource="{Binding Keyboards}"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                SelectedItem="{Binding Selected}">
+                <ListView.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:KeyboardItem}">
+                        <Grid Margin="6,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <ui:SymbolIcon
+                                Margin="0,0,14,0"
+                                FontSize="26"
+                                Symbol="Keyboard24" />
+
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <ui:TextBlock FontTypography="BodyStrong" Text="{Binding Title}" />
+                                <ui:TextBlock
+                                    FontTypography="Caption"
+                                    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                    Text="{Binding Subtitle}"
+                                    TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+
+                            <Border
+                                Grid.Column="2"
+                                Margin="12,0"
+                                Style="{StaticResource StatusPill}"
+                                Tag="{Binding StatusKind}">
+                                <ui:TextBlock FontTypography="Caption" Text="{Binding StatusText}" />
+                            </Border>
+
+                            <Grid Grid.Column="3">
+                                <Grid>
+                                    <Grid.Style>
+                                        <Style TargetType="Grid">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Grid.Style>
+                                    <ui:Button
+                                        MinWidth="96"
+                                        Appearance="Primary"
+                                        Command="{Binding DataContext.StartCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                        CommandParameter="{Binding}"
+                                        Content="Start"
+                                        Icon="{ui:SymbolIcon Play24}" />
+                                </Grid>
+                                <Grid>
+                                    <Grid.Style>
+                                        <Style TargetType="Grid">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Grid.Style>
+                                    <ui:Button
+                                        MinWidth="96"
+                                        Command="{Binding DataContext.StopCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                        CommandParameter="{Binding}"
+                                        Content="Stop"
+                                        Icon="{ui:SymbolIcon Stop24}" />
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ui:ListView>
+
+            <ui:TextBlock
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                Text="No keyboards found. Plug one in and click Refresh list.">
+                <ui:TextBlock.Style>
+                    <Style TargetType="ui:TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasNoKeyboards}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ui:TextBlock.Style>
+            </ui:TextBlock>
+        </Grid>
+
+        <!-- Messages -->
+        <StackPanel Grid.Row="6" Margin="0,8,0,0">
+            <ui:TextBlock
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                Text="{Binding IdentifyHint}" />
+            <ui:TextBlock Foreground="{DynamicResource SystemFillColorCautionBrush}" Text="{Binding ListProblem}" />
+            <ui:TextBlock Text="{Binding StatusMessage}">
+                <ui:TextBlock.Style>
+                    <Style TargetType="ui:TextBlock">
+                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding StatusIsError}" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ui:TextBlock.Style>
+            </ui:TextBlock>
+        </StackPanel>
+    </Grid>
+</Page>

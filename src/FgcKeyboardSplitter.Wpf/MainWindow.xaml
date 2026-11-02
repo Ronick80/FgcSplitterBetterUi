@@ -1,0 +1,43 @@
+<ui:FluentWindow
+    x:Class="FgcKeyboardSplitter.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:views="clr-namespace:FgcKeyboardSplitter.Views"
+    Title="FGC Keyboard Splitter"
+    Width="1040"
+    Height="760"
+    MinWidth="860"
+    MinHeight="560"
+    ExtendsContentIntoTitleBar="True"
+    WindowBackdropType="Mica"
+    WindowCornerPreference="Round"
+    WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <ui:TitleBar Title="FGC Keyboard Splitter" Grid.Row="0" />
+
+        <ui:NavigationView
+            x:Name="RootNavigation"
+            Grid.Row="1"
+            IsBackButtonVisible="Collapsed"
+            PaneDisplayMode="Left">
+            <ui:NavigationView.MenuItems>
+                <ui:NavigationViewItem
+                    Content="Keyboards"
+                    Icon="{ui:SymbolIcon Keyboard24}"
+                    TargetPageType="{x:Type views:KeyboardsPage}" />
+            </ui:NavigationView.MenuItems>
+            <ui:NavigationView.FooterMenuItems>
+                <ui:NavigationViewItem
+                    Content="Drivers"
+                    Icon="{ui:SymbolIcon ShieldCheckmark24}"
+                    TargetPageType="{x:Type views:DriversPage}" />
+            </ui:NavigationView.FooterMenuItems>
+        </ui:NavigationView>
+    </Grid>
+</ui:FluentWindow>

@@ -1,0 +1,96 @@
+<Page
+    x:Class="FgcKeyboardSplitter.Views.DriversPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    Title="Drivers">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="28,20,28,24">
+            <ui:TextBlock FontTypography="Title" Text="Drivers" />
+            <ui:TextBlock
+                Margin="0,4,0,16"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                Text="Two Windows drivers do the work: one captures a keyboard, the other provides the virtual controllers."
+                TextWrapping="Wrap" />
+
+            <ui:InfoBar
+                Title="Could not read the driver status"
+                Margin="0,0,0,12"
+                IsClosable="False"
+                IsOpen="{Binding HasQueryProblem}"
+                Message="{Binding QueryProblem}"
+                Severity="Error" />
+
+            <ui:Card Margin="0,0,0,12">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <ui:TextBlock FontTypography="BodyStrong" Text="Interception" />
+                        <ui:TextBlock
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                            Text="{Binding InterceptionDetail}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                    <Border
+                        Grid.Column="1"
+                        Style="{StaticResource StatusPill}"
+                        Tag="{Binding InterceptionKind}">
+                        <ui:TextBlock FontTypography="Caption" Text="{Binding InterceptionStatus}" />
+                    </Border>
+                </Grid>
+            </ui:Card>
+
+            <ui:Card Margin="0,0,0,20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <ui:TextBlock FontTypography="BodyStrong" Text="ScpVBus" />
+                        <ui:TextBlock
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                            Text="{Binding ScpVBusDetail}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                    <Border
+                        Grid.Column="1"
+                        Style="{StaticResource StatusPill}"
+                        Tag="{Binding ScpVBusKind}">
+                        <ui:TextBlock FontTypography="Caption" Text="{Binding ScpVBusStatus}" />
+                    </Border>
+                </Grid>
+            </ui:Card>
+
+            <StackPanel Orientation="Horizontal">
+                <ui:Button
+                    Margin="0,0,8,0"
+                    Appearance="Primary"
+                    Command="{Binding RunSetupCommand}"
+                    Content="Install or repair drivers..."
+                    Icon="{ui:SymbolIcon ShieldCheckmark24}" />
+                <ui:Button
+                    Command="{Binding RecheckCommand}"
+                    Content="Check again"
+                    Icon="{ui:SymbolIcon ArrowSync24}" />
+            </StackPanel>
+
+            <ui:TextBlock
+                Margin="0,12,0,0"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                Text="Opens the driver setup tool, which asks for administrator rights. Interception needs a restart of Windows afterwards."
+                TextWrapping="Wrap" />
+
+            <ui:InfoBar
+                Title="Driver setup"
+                Margin="0,12,0,0"
+                IsClosable="False"
+                IsOpen="{Binding HasSetupMessage}"
+                Message="{Binding SetupMessage}"
+                Severity="Informational" />
+        </StackPanel>
+    </ScrollViewer>
+</Page>

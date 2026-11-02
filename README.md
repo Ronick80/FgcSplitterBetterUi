@@ -4,7 +4,8 @@ A Windows desktop front end for [FGC Keyboard Splitter](https://github.com/Ronic
 (`FgcCore.dll`, the keyboard capture and virtual Xbox controllers) lives in that repository; this one only holds the
 user interface and does not contain any engine code.
 
-Status: the interop layer is done and tested. The WPF app is not started yet.
+Status: the interop layer and the app shell are done (Keyboards page with start, stop and identify; Drivers page with
+the elevated driver setup launcher). Profiles, mapping, the controller diagram and the latency page are still to do.
 
 ## How it fits together
 
@@ -14,6 +15,8 @@ Status: the interop layer is done and tested. The WPF app is not started yet.
   Building any project runs the script automatically when `core/` is empty.
 - `src/Fgc.Interop` wraps the engine's C API (`core/include/fgc_core.h` in the engine repository). It checks
   `fgc_get_api_version()` and refuses to run against an engine with another API version.
+- `src/FgcKeyboardSplitter.Wpf` is the WPF app (`FgcKeyboardSplitter.exe`) built on [WPF-UI](https://wpfui.lepo.co)
+  and CommunityToolkit.Mvvm. A build copies `FgcCore.dll`, `FgcDriverSetup.exe` and `drivers\` next to the exe.
 - `tests/Fgc.Interop.Tests` tests struct layouts and calls the real `FgcCore.dll`. No test starts a session, so no
   keyboard is captured.
 
@@ -24,6 +27,7 @@ Needs Windows x64 and the .NET 9 SDK.
 ```powershell
 dotnet build
 dotnet test
+dotnet run --project src\FgcKeyboardSplitter.Wpf
 ```
 
 To build against your own engine build, point at a folder that contains `FgcCore.dll`:

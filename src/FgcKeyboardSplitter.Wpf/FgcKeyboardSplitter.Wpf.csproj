@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>FgcKeyboardSplitter</AssemblyName>
+    <RootNamespace>FgcKeyboardSplitter</RootNamespace>
+    <Version>0.1.0</Version>
+    <FgcCoreCopyExtras>true</FgcCoreCopyExtras>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fgc.Interop\Fgc.Interop.csproj" />
+  </ItemGroup>
+
+  <Import Project="..\..\build\FgcCore.targets" />
+
+</Project>
