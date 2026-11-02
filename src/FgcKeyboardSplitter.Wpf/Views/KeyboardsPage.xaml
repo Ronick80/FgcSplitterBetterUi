@@ -3,44 +3,10 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="clr-namespace:FgcKeyboardSplitter.ViewModels"
-    Title="Keyboards"
-    TextElement.FontFamily="Bahnschrift, Segoe UI"
-    TextElement.Foreground="#F3F7EA">
-    <Page.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/FgcKeyboardSplitter;component/Theme/Arcade.xaml" />
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Page.Resources>
+    Title="Keyboards">
 
-    <Grid ClipToBounds="True">
-        <!-- Backdrop: black, a lime glow top right, halftone dots fading downwards, and two speed slashes -->
-        <Rectangle Fill="{StaticResource ArcadeBlack}" />
-        <Rectangle>
-            <Rectangle.Fill>
-                <RadialGradientBrush Center="0.95,0" GradientOrigin="0.95,0" RadiusX="0.7" RadiusY="0.9">
-                    <GradientStop Offset="0" Color="#3ACDF24B" />
-                    <GradientStop Offset="1" Color="#00CDF24B" />
-                </RadialGradientBrush>
-            </Rectangle.Fill>
-        </Rectangle>
-        <Rectangle Fill="{StaticResource ArcadeHalftone}" Opacity="0.16">
-            <Rectangle.OpacityMask>
-                <LinearGradientBrush StartPoint="1,0" EndPoint="0.3,0.8">
-                    <GradientStop Offset="0" Color="Black" />
-                    <GradientStop Offset="1" Color="Transparent" />
-                </LinearGradientBrush>
-            </Rectangle.OpacityMask>
-        </Rectangle>
-        <Canvas
-            Width="260"
-            HorizontalAlignment="Right"
-            IsHitTestVisible="False">
-            <Polygon Fill="{StaticResource ArcadeLime}" Opacity="0.9" Points="110,0 190,0 70,180 -10,180" />
-            <Polygon Fill="{StaticResource ArcadeCyan}" Opacity="0.55" Points="210,0 234,0 114,180 90,180" />
-        </Canvas>
-
+    <ContentControl Style="{StaticResource ArcadePage}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
         <Grid Margin="32,26,32,24">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -48,35 +14,16 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- Header -->
             <StackPanel Grid.Row="0">
-                <Border Style="{StaticResource ArcadeTag}">
-                    <TextBlock
-                        FontSize="15"
-                        Foreground="{StaticResource ArcadeBlack}"
-                        Style="{StaticResource ArcadeHeading}"
-                        Text="PLAYER SELECT" />
-                </Border>
-                <Grid Margin="0,4,0,0" HorizontalAlignment="Left">
-                    <Grid.RenderTransform>
-                        <SkewTransform AngleX="-10" />
-                    </Grid.RenderTransform>
-                    <TextBlock
-                        Margin="5,5,0,0"
-                        FontSize="68"
-                        Foreground="{StaticResource ArcadeCyan}"
-                        Style="{StaticResource ArcadeHeading}"
-                        Text="KEYBOARDS" />
-                    <TextBlock
-                        FontSize="68"
-                        Foreground="{StaticResource ArcadeLime}"
-                        Style="{StaticResource ArcadeHeading}"
-                        Text="KEYBOARDS" />
-                </Grid>
+                <ContentControl
+                    Content="KEYBOARDS"
+                    Style="{StaticResource ArcadeHeader}"
+                    Tag="PLAYER SELECT" />
                 <TextBlock
                     MaxWidth="480"
                     Margin="0,2,0,0"
@@ -283,14 +230,19 @@
             </WrapPanel>
 
             <!-- Keyboard list -->
-            <Grid Grid.Row="5">
+            <Grid Grid.Row="5" MinHeight="80">
                 <ListBox
                     Background="Transparent"
                     BorderThickness="0"
                     ItemContainerStyle="{StaticResource ArcadeListItem}"
                     ItemsSource="{Binding Keyboards}"
-                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                     SelectedItem="{Binding Selected}">
+                    <!-- No inner scroll viewer: the page scrolls, and an inner one would swallow the mouse wheel. -->
+                    <ListBox.Template>
+                        <ControlTemplate TargetType="ListBox">
+                            <ItemsPresenter />
+                        </ControlTemplate>
+                    </ListBox.Template>
                     <ListBox.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:KeyboardItem}">
                             <Grid>
@@ -486,5 +438,6 @@
                 </TextBlock>
             </StackPanel>
         </Grid>
-    </Grid>
+        </ScrollViewer>
+    </ContentControl>
 </Page>

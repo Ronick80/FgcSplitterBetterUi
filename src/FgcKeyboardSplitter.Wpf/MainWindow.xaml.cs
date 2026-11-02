@@ -1,40 +1,66 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using FgcKeyboardSplitter.Services;
 using FgcKeyboardSplitter.Views;
-using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
 namespace FgcKeyboardSplitter;
 
 public partial class MainWindow : FluentWindow, INavigator
 {
-    // Below this width (in device-independent pixels) the navigation pane collapses to icons.
-    private const double CompactPaneWidth = 1000;
+    public static readonly DependencyProperty IsCompactProperty =
+        DependencyProperty.Register(nameof(IsCompact), typeof(bool), typeof(MainWindow), new PropertyMetadata(false));
 
+    // Below this width (in device-independent pixels) the sidebar shrinks to icons.
+    private const double CompactSidebarWidth = 1000;
+    private const double WideSidebar = 236;
+    private const double NarrowSidebar = 84;
+
+    private readonly Dictionary<Type, RadioButton> _navButtons;
+    private IReadOnlyDictionary<Type, object> _pages = new Dictionary<Type, object>();
     private UiScaleService? _scale;
-    private bool? _wasNarrow;
 
     public MainWindow()
     {
-        SystemThemeWatcher.Watch(this);
         InitializeComponent();
+        _navButtons = new Dictionary<Type, RadioButton>
+        {
+            [typeof(KeyboardsPage)] = NavKeyboards,
+            [typeof(MappingPage)] = NavMapping,
+            [typeof(LatencyPage)] = NavLatency,
+            [typeof(DriversPage)] = NavDrivers,
+        };
+        // Pages are reused, so the frame's back history would only keep them alive twice.
+        PageHost.Navigated += (_, _) =>
+        {
+            while (PageHost.CanGoBack)
+            {
+                PageHost.RemoveBackEntry();
+            }
+        };
         FitToWorkArea();
-        SizeChanged += (_, _) => UpdatePane();
+        SizeChanged += (_, _) => UpdateSidebar();
+    }
+
+    public bool IsCompact
+    {
+        get => (bool)GetValue(IsCompactProperty);
+        set => SetValue(IsCompactProperty, value);
     }
 
     public void SetPages(IReadOnlyDictionary<Type, object> pages)
     {
-        RootNavigation.SetPageProviderService(new AppPageProvider(pages));
-        Loaded += (_, _) => RootNavigation.Navigate(typeof(KeyboardsPage));
+        _pages = pages;
+        Loaded += (_, _) => Navigate(typeof(KeyboardsPage));
     }
 
     public ContentDialogHost DialogHost => RootDialogHost;
 
-    public void ShowDrivers() => RootNavigation.Navigate(typeof(DriversPage));
+    public void ShowDrivers() => Navigate(typeof(DriversPage));
 
-    public void ShowMapping() => RootNavigation.Navigate(typeof(MappingPage));
+    public void ShowMapping() => Navigate(typeof(MappingPage));
 
     public void UseScale(UiScaleService scale)
     {
@@ -43,6 +69,23 @@ public partial class MainWindow : FluentWindow, INavigator
         scale.PropertyChanged += (_, _) => ApplyScale();
         PreviewKeyDown += OnPreviewKeyDown;
         PreviewMouseWheel += OnPreviewMouseWheel;
+    }
+
+    private void Navigate(Type pageType)
+    {
+        if (_navButtons.TryGetValue(pageType, out RadioButton? button))
+        {
+            button.IsChecked = true; // raises OnNavChecked, which shows the page
+        }
+    }
+
+    private void OnNavChecked(object sender, RoutedEventArgs e)
+    {
+        Type? pageType = _navButtons.FirstOrDefault(pair => ReferenceEquals(pair.Value, sender)).Key;
+        if (pageType is not null && _pages.TryGetValue(pageType, out object? page) && !ReferenceEquals(PageHost.Content, page))
+        {
+            PageHost.Navigate(page);
+        }
     }
 
     /// <summary>Keeps the first window inside small laptop screens, which may be only about 1280 x 680 usable.</summary>
@@ -59,18 +102,18 @@ public partial class MainWindow : FluentWindow, INavigator
     {
         double factor = _scale?.Scale ?? 1.0;
         ScaleRoot.LayoutTransform = Math.Abs(factor - 1.0) < 0.001 ? Transform.Identity : new ScaleTransform(factor, factor);
-        UpdatePane();
+        UpdateSidebar();
     }
 
-    private void UpdatePane()
+    private void UpdateSidebar()
     {
-        // Only act when crossing the threshold, so the user can still open or close the pane by hand.
-        bool narrow = ActualWidth / (_scale?.Scale ?? 1.0) < CompactPaneWidth;
-        if (narrow != _wasNarrow && ActualWidth > 0)
+        if (ActualWidth <= 0)
         {
-            RootNavigation.IsPaneOpen = !narrow;
-            _wasNarrow = narrow;
+            return;
         }
+
+        IsCompact = ActualWidth / (_scale?.Scale ?? 1.0) < CompactSidebarWidth;
+        Sidebar.Width = IsCompact ? NarrowSidebar : WideSidebar;
     }
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
