@@ -1,0 +1,18 @@
+<Project>
+  <!-- Copies FgcCore.dll next to the output. Fetches the pinned release first when .\core is still empty. -->
+  <PropertyGroup>
+    <FgcDefaultCoreDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\core'))</FgcDefaultCoreDir>
+    <FgcCoreDirFull>$([System.IO.Path]::GetFullPath('$(FgcCoreDir)'))</FgcCoreDirFull>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(FgcCoreDir)\FgcCore.dll" Link="FgcCore.dll" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <Target Name="FetchFgcCore" BeforeTargets="BeforeBuild" Condition="!Exists('$(FgcCoreDir)\FgcCore.dll')">
+    <Exec Condition="'$(FgcCoreDirFull.TrimEnd(`\`))' == '$(FgcDefaultCoreDir.TrimEnd(`\`))'"
+          Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)..\scripts\Get-FgcCore.ps1&quot;" />
+    <Error Condition="!Exists('$(FgcCoreDir)\FgcCore.dll')"
+           Text="FgcCore.dll was not found in $(FgcCoreDir). Run scripts\Get-FgcCore.ps1, or set FgcCoreDir / FGC_CORE_DIR to a folder that has it." />
+  </Target>
+</Project>

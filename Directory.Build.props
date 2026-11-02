@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PlatformTarget>x64</PlatformTarget>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- FgcCore.dll is x64 only. Folder with FgcCore.dll: -p:FgcCoreDir=..., or FGC_CORE_DIR, or .\core from scripts\Get-FgcCore.ps1 -->
+    <FgcCoreDir Condition="'$(FgcCoreDir)' == '' And '$(FGC_CORE_DIR)' != ''">$(FGC_CORE_DIR)</FgcCoreDir>
+    <FgcCoreDir Condition="'$(FgcCoreDir)' == ''">$(MSBuildThisFileDirectory)core</FgcCoreDir>
+  </PropertyGroup>
+</Project>
