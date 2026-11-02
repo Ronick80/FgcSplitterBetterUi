@@ -92,6 +92,12 @@
                 IsOpen="{Binding HasSetupMessage}"
                 Message="{Binding SetupMessage}"
                 Severity="Informational" />
+
+            <ui:TextBlock
+                Margin="0,28,0,0"
+                FontTypography="Caption"
+                Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                Text="{Binding AboutText}" />
         </StackPanel>
     </ScrollViewer>
 </Page>

@@ -231,6 +231,16 @@ public class DriversViewModelTests
     }
 
     [Fact]
+    public void ExposesTheVersionTextForTheAboutLine()
+    {
+        _engine.RefreshDrivers();
+
+        var vm = new DriversViewModel(_engine, "UI 1.0.0 - engine 2.0.0");
+
+        Assert.Equal("UI 1.0.0 - engine 2.0.0", vm.AboutText);
+    }
+
+    [Fact]
     public void UpdatesWhenTheDriversAreCheckedAgain()
     {
         _client.Drivers = new DriverStatus(InterceptionState.NotInstalled, false);

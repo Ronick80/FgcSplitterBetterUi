@@ -6,7 +6,7 @@ user interface and does not contain any engine code.
 
 Status: feature complete for the first version. Keyboards page (start, stop, identify, controller slots), Mapping page
 (clickable controller drawing and a list, profiles, key binding), Latency page, and a Drivers page that launches the
-elevated driver setup tool. Packaging for release is still to do.
+elevated driver setup tool. Release packaging is in place (see Releasing).
 
 ## How it fits together
 
@@ -43,6 +43,22 @@ dotnet test -p:FgcCoreDir=C:\coding\FgcKeyboardSplitter\build\bin\Release
 
 If PowerShell refuses to run the download script, run it as
 `powershell -ExecutionPolicy Bypass -File scripts\Get-FgcCore.ps1`.
+
+## Releasing
+
+`version.txt` holds the app version (`MAJOR.MINOR.PATCH`); every project picks it up. To make the package locally:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\Publish.ps1
+```
+
+This publishes a self-contained single-file `FgcKeyboardSplitter.exe` (no .NET install needed) and writes
+`artifacts\FgcSplitterBetterUi-<version>-win-x64.zip` plus its `.sha256`. The zip also holds `FgcCore.dll`,
+`FgcDriverSetup.exe` and the `drivers` folder from the pinned engine release; the script fails if one is missing.
+
+To publish a release: change `version.txt`, commit it, then tag and push (`git tag v0.1.0`, `git push origin v0.1.0`).
+The **Release** workflow checks the tag matches `version.txt`, runs the tests that need no hardware, builds the zip
+and attaches it to a GitHub release. The **CI** workflow runs the same tests on every push and pull request.
 
 ## Updating the engine version
 

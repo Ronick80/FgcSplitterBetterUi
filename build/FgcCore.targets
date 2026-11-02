@@ -16,9 +16,11 @@
   <!-- Items are added inside a target so they see the files the fetch just created. -->
   <Target Name="AddFgcCoreFiles" BeforeTargets="AssignTargetPaths" DependsOnTargets="FetchFgcCore">
     <ItemGroup>
-      <None Include="$(FgcCoreDir)\FgcCore.dll" Link="FgcCore.dll" CopyToOutputDirectory="PreserveNewest" />
-      <None Condition="'$(FgcCoreCopyExtras)' == 'true'" Include="$(FgcCoreDir)\FgcDriverSetup.exe" Link="FgcDriverSetup.exe" CopyToOutputDirectory="PreserveNewest" />
-      <None Condition="'$(FgcCoreCopyExtras)' == 'true'" Include="$(FgcCoreDir)\drivers\**" Link="drivers\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+      <None Include="$(FgcCoreDir)\FgcCore.dll" Link="FgcCore.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+      <None Condition="'$(FgcCoreCopyExtras)' == 'true'" Include="$(FgcCoreDir)\FgcDriverSetup.exe" Link="FgcDriverSetup.exe" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+      <FgcDriverFile Condition="'$(FgcCoreCopyExtras)' == 'true'" Include="$(FgcCoreDir)\drivers\**" />
+      <!-- Metadata is qualified with the item type; unqualified %(Filename) would batch over the other None items. -->
+      <None Include="@(FgcDriverFile)" Link="drivers\%(FgcDriverFile.RecursiveDir)%(FgcDriverFile.Filename)%(FgcDriverFile.Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
     </ItemGroup>
   </Target>
 </Project>

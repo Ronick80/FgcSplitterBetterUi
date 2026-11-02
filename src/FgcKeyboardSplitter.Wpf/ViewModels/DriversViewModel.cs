@@ -9,12 +9,15 @@ public sealed partial class DriversViewModel : ObservableObject
 {
     private readonly EngineService _engine;
 
-    public DriversViewModel(EngineService engine)
+    public DriversViewModel(EngineService engine, string aboutText = "")
     {
         _engine = engine;
+        AboutText = aboutText;
         _engine.DriversChanged += (_, _) => Update();
         Update();
     }
+
+    public string AboutText { get; }
 
     [ObservableProperty]
     private string _interceptionStatus = string.Empty;

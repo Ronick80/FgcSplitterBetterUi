@@ -5,3 +5,4 @@ obj/
 TestResults/
 # Downloaded by scripts/Get-FgcCore.ps1
 core/
+artifacts/
