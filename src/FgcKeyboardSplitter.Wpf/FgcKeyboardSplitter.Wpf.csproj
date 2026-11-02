@@ -6,6 +6,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>FgcKeyboardSplitter</AssemblyName>
     <RootNamespace>FgcKeyboardSplitter</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
     <FgcCoreCopyExtras>true</FgcCoreCopyExtras>
   </PropertyGroup>
 

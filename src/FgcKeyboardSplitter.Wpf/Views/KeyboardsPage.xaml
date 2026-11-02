@@ -56,7 +56,7 @@
             <StackPanel Grid.Row="0">
                 <Border Style="{StaticResource ArcadeTag}">
                     <TextBlock
-                        FontSize="13"
+                        FontSize="15"
                         Foreground="{StaticResource ArcadeBlack}"
                         Style="{StaticResource ArcadeHeading}"
                         Text="PLAYER SELECT" />
@@ -66,19 +66,19 @@
                         <SkewTransform AngleX="-10" />
                     </Grid.RenderTransform>
                     <TextBlock
-                        Margin="4,4,0,0"
-                        FontSize="58"
+                        Margin="5,5,0,0"
+                        FontSize="68"
                         Foreground="{StaticResource ArcadeCyan}"
                         Style="{StaticResource ArcadeHeading}"
                         Text="KEYBOARDS" />
                     <TextBlock
-                        FontSize="58"
+                        FontSize="68"
                         Foreground="{StaticResource ArcadeLime}"
                         Style="{StaticResource ArcadeHeading}"
                         Text="KEYBOARDS" />
                 </Grid>
                 <TextBlock
-                    MaxWidth="440"
+                    MaxWidth="480"
                     Margin="0,2,0,0"
                     HorizontalAlignment="Left"
                     Style="{StaticResource ArcadeBody}"
@@ -163,13 +163,9 @@
             </ItemsControl>
 
             <!-- Controller slots as player slots -->
-            <ContentControl Grid.Row="3" Margin="0,22,6,16" Style="{StaticResource ArcadeCard}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <ItemsControl VerticalAlignment="Center" ItemsSource="{Binding Slots}">
+            <ContentControl Grid.Row="3" Margin="0,22,6,18" Style="{StaticResource ArcadeCard}">
+                <WrapPanel>
+                    <ItemsControl Margin="0,0,8,0" VerticalAlignment="Center" ItemsSource="{Binding Slots}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <StackPanel Orientation="Horizontal" />
@@ -177,15 +173,15 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:SlotItem}">
-                                <Grid Width="84" Height="58" Margin="0,0,14,0">
+                                <Grid Width="100" Height="70" Margin="0,6,16,6">
                                     <Border Margin="4,4,-4,-4" Background="{StaticResource ArcadeShadow}">
                                         <Border.RenderTransform>
-                                            <SkewTransform AngleX="-14" CenterY="29" />
+                                            <SkewTransform AngleX="-14" CenterY="35" />
                                         </Border.RenderTransform>
                                     </Border>
                                     <Border x:Name="Plate" BorderThickness="2">
                                         <Border.RenderTransform>
-                                            <SkewTransform AngleX="-14" CenterY="29" />
+                                            <SkewTransform AngleX="-14" CenterY="35" />
                                         </Border.RenderTransform>
                                         <Border.Style>
                                             <Style TargetType="Border">
@@ -220,10 +216,10 @@
                                             </Style>
                                         </StackPanel.Resources>
                                         <TextBlock
-                                            FontSize="22"
+                                            FontSize="28"
                                             Style="{StaticResource SlotText}"
                                             Text="{Binding PlayerLabel}" />
-                                        <TextBlock FontSize="11">
+                                        <TextBlock FontSize="13">
                                             <TextBlock.Style>
                                                 <Style BasedOn="{StaticResource SlotText}" TargetType="TextBlock">
                                                     <Setter Property="Text" Value="OPEN" />
@@ -244,9 +240,12 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                    <StackPanel
+                        MaxWidth="420"
+                        Margin="0,6,0,6"
+                        VerticalAlignment="Center">
                         <TextBlock
-                            FontSize="20"
+                            FontSize="24"
                             Foreground="{StaticResource ArcadeLime}"
                             Style="{StaticResource ArcadeHeading}"
                             Text="CONTROLLER SLOTS" />
@@ -264,7 +263,7 @@
                             </TextBlock.Visibility>
                         </TextBlock>
                     </StackPanel>
-                </Grid>
+                </WrapPanel>
             </ContentControl>
 
             <!-- List actions -->
@@ -303,7 +302,7 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <Viewbox Width="34" Height="34" Margin="0,0,16,0">
+                                <Viewbox Width="44" Height="44" Margin="0,0,18,0">
                                     <Path
                                         Data="F0 M1,5 H23 V19 H1 Z M4,8 H6.5 V10.5 H4 Z M8.5,8 H11 V10.5 H8.5 Z M13,8 H15.5 V10.5 H13 Z M17.5,8 H20 V10.5 H17.5 Z M6,13.5 H18 V16 H6 Z"
                                         Fill="{StaticResource ArcadeLime}" />
@@ -311,11 +310,11 @@
 
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                     <TextBlock
-                                        FontSize="22"
+                                        FontSize="28"
                                         Style="{StaticResource ArcadeHeading}"
                                         Text="{Binding Title, Converter={StaticResource Upper}}" />
                                     <TextBlock
-                                        FontSize="12"
+                                        FontSize="14"
                                         Foreground="{StaticResource ArcadeTextDim}"
                                         Text="{Binding Subtitle}"
                                         TextTrimming="CharacterEllipsis" />
@@ -339,9 +338,9 @@
                                         </Border.Style>
                                         <StackPanel Orientation="Horizontal">
                                             <Ellipse
-                                                Width="8"
-                                                Height="8"
-                                                Margin="0,0,6,0"
+                                                Width="10"
+                                                Height="10"
+                                                Margin="0,0,7,0"
                                                 VerticalAlignment="Center"
                                                 Fill="{StaticResource ArcadeBlack}">
                                                 <Ellipse.Style>
@@ -361,7 +360,7 @@
                                                     </Style>
                                                 </Ellipse.Style>
                                             </Ellipse>
-                                            <TextBlock FontSize="13">
+                                            <TextBlock FontSize="16">
                                                 <TextBlock.Style>
                                                     <Style BasedOn="{StaticResource ArcadeHeading}" TargetType="TextBlock">
                                                         <Setter Property="Text" Value="READY" />
@@ -389,7 +388,7 @@
 
                                 <Grid Grid.Column="4" VerticalAlignment="Center">
                                     <Button
-                                        MinWidth="104"
+                                        MinWidth="124"
                                         Margin="0,0,4,4"
                                         Command="{Binding DataContext.StartCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                         CommandParameter="{Binding}"
@@ -405,7 +404,7 @@
                                         </Button.Style>
                                     </Button>
                                     <Button
-                                        MinWidth="104"
+                                        MinWidth="124"
                                         Margin="0,0,4,4"
                                         Command="{Binding DataContext.StopCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                         CommandParameter="{Binding}"
@@ -430,7 +429,7 @@
                 <TextBlock
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    FontSize="20"
+                    FontSize="24"
                     Foreground="{StaticResource ArcadeTextDim}"
                     Text="NO KEYBOARDS FOUND - PLUG ONE IN AND HIT REFRESH">
                     <TextBlock.Style>
@@ -449,7 +448,7 @@
             <!-- Messages -->
             <StackPanel Grid.Row="6" Margin="0,8,0,0">
                 <TextBlock
-                    FontSize="22"
+                    FontSize="26"
                     Foreground="{StaticResource ArcadeCyan}"
                     Text="PRESS ANY KEY ON THE KEYBOARD YOU WANT">
                     <TextBlock.Style>

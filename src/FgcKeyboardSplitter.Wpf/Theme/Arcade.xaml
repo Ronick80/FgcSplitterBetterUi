@@ -75,7 +75,7 @@
 
     <Style x:Key="ArcadeBody" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource ArcadeFont}" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="16" />
         <Setter Property="Foreground" Value="{StaticResource ArcadeTextDim}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
@@ -99,9 +99,9 @@
         <Setter Property="FontFamily" Value="{StaticResource ArcadeFont}" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="FontStretch" Value="Condensed" />
-        <Setter Property="FontSize" Value="15" />
-        <Setter Property="Padding" Value="18,7" />
-        <Setter Property="Margin" Value="0,0,12,4" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="Padding" Value="24,9" />
+        <Setter Property="Margin" Value="0,0,14,5" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Background" Value="{StaticResource ArcadeBlack}" />
         <Setter Property="Foreground" Value="{StaticResource ArcadeLime}" />
@@ -213,7 +213,7 @@
 
     <!-- Panel with a lime frame, a hard shadow and a notched corner -->
     <Style x:Key="ArcadeCard" TargetType="ContentControl">
-        <Setter Property="Padding" Value="20,16" />
+        <Setter Property="Padding" Value="24,20" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ContentControl">
@@ -258,9 +258,9 @@
                                 </Grid.ColumnDefinitions>
                                 <Border
                                     x:Name="Accent"
-                                    Width="8"
+                                    Width="10"
                                     Background="{StaticResource ArcadeLine}" />
-                                <ContentPresenter Grid.Column="1" Margin="16,12" />
+                                <ContentPresenter Grid.Column="1" Margin="20,16" />
                             </Grid>
                         </Border>
                     </Grid>

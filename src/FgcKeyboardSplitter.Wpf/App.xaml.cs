@@ -40,6 +40,7 @@ public partial class App : Application
         _engine = new EngineService(client);
 
         var window = new MainWindow();
+        window.UseScale(new UiScaleService(UiScaleService.DefaultSettingsPath));
         var selection = new KeyboardSelection();
         var capture = new KeyCaptureService();
         capture.Attach(window);

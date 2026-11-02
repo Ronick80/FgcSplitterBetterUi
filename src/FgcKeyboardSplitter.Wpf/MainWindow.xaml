@@ -5,15 +5,15 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:views="clr-namespace:FgcKeyboardSplitter.Views"
     Title="FGC Keyboard Splitter"
-    Width="1040"
-    Height="760"
-    MinWidth="860"
-    MinHeight="560"
+    Width="1180"
+    Height="820"
+    MinWidth="720"
+    MinHeight="480"
     ExtendsContentIntoTitleBar="True"
     WindowBackdropType="Mica"
     WindowCornerPreference="Round"
     WindowStartupLocation="CenterScreen">
-    <Grid>
+    <Grid x:Name="ScaleRoot">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
