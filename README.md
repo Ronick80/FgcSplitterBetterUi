@@ -64,3 +64,9 @@ and attaches it to a GitHub release. The **CI** workflow runs the same tests on 
 
 Take the URL of the release zip and the SHA-256 from the release's `.sha256` file, put them in `core.lock.json`, then
 run `scripts\Get-FgcCore.ps1`. It replaces `core/` only when the pinned version or checksum changed.
+
+## Third-party fonts
+
+The page titles use [Chakra Petch](https://github.com/m4rc1e/Chakra-Petch) Bold, embedded in the app, under the SIL
+Open Font License 1.1. The licence is in `src/FgcKeyboardSplitter.Wpf/Theme/Fonts/ChakraPetch-OFL.txt` and is copied
+to `licenses\` next to the published exe.

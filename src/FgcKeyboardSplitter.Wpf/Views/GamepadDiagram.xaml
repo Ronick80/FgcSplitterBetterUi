@@ -1,0 +1,258 @@
+<UserControl
+    x:Class="FgcKeyboardSplitter.Views.GamepadDiagram"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:FgcKeyboardSplitter.ViewModels">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="PadBodyFill" Color="#0D1009" />
+        <SolidColorBrush x:Key="PadDim" Color="#5E6854" />
+
+        <!-- Right-click menu for both the drawing and the key labels -->
+        <ContextMenu x:Key="PadMenu" x:Shared="False">
+            <MenuItem
+                Command="{Binding PlacementTarget.Tag.PickKeyCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                Header="PICK A KEY FROM A LIST" />
+            <MenuItem
+                Command="{Binding PlacementTarget.Tag.ClearKeyCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                Header="CLEAR" />
+        </ContextMenu>
+
+        <!-- Anything that starts a binding when clicked; hovering it lights up the input everywhere. -->
+        <Style x:Key="PadHotspot" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Command" Value="{Binding DataContext.ToggleBindCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+            <Setter Property="CommandParameter" Value="{Binding}" />
+            <Setter Property="Tag" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+            <Setter Property="ContextMenu" Value="{StaticResource PadMenu}" />
+            <Setter Property="ToolTip" Value="{Binding Label}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <EventSetter Event="MouseEnter" Handler="OnHotspotEnter" />
+            <EventSetter Event="MouseLeave" Handler="OnHotspotLeave" />
+        </Style>
+
+        <Style x:Key="PadShape" TargetType="Path">
+            <Setter Property="Fill" Value="Transparent" />
+            <Setter Property="Stroke" Value="{StaticResource ArcadeText}" />
+            <Setter Property="StrokeThickness" Value="3" />
+            <Setter Property="StrokeLineJoin" Value="Round" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Outlined}" Value="False">
+                    <Setter Property="Stroke" Value="{x:Null}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsHot}" Value="True">
+                    <Setter Property="Fill" Value="{StaticResource ArcadeLime}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsBinding}" Value="True">
+                    <Setter Property="Fill" Value="{StaticResource ArcadeCyan}" />
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard x:Name="ShapeBlink" Storyboard="{StaticResource ArcadeBlink}" />
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <StopStoryboard BeginStoryboardName="ShapeBlink" />
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PadGlyph" TargetType="Path">
+            <Setter Property="Stroke" Value="{StaticResource ArcadeText}" />
+            <Setter Property="StrokeThickness" Value="2.5" />
+            <Setter Property="StrokeStartLineCap" Value="Round" />
+            <Setter Property="StrokeEndLineCap" Value="Round" />
+            <Setter Property="StrokeLineJoin" Value="Round" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsHot}" Value="True">
+                    <Setter Property="Stroke" Value="{StaticResource ArcadeBlack}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsBinding}" Value="True">
+                    <Setter Property="Stroke" Value="{StaticResource ArcadeBlack}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PadLetter" BasedOn="{StaticResource ArcadeHeading}" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsHot}" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource ArcadeBlack}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsBinding}" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource ArcadeBlack}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PadLeader" TargetType="Polyline">
+            <Setter Property="Stroke" Value="{StaticResource ArcadeLine}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsShared}" Value="True">
+                    <Setter Property="Stroke" Value="#7A5A12" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsHot}" Value="True">
+                    <Setter Property="Stroke" Value="{StaticResource ArcadeLime}" />
+                    <Setter Property="StrokeThickness" Value="3" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsBinding}" Value="True">
+                    <Setter Property="Stroke" Value="{StaticResource ArcadeCyan}" />
+                    <Setter Property="StrokeThickness" Value="3" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ChipPlate" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource ArcadePanel}" />
+            <Setter Property="BorderBrush" Value="{StaticResource ArcadeLine}" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <SkewTransform AngleX="-14" />
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsShared}" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource ArcadeAmber}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsHot}" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource ArcadeLime}" />
+                    <Setter Property="Background" Value="{StaticResource ArcadePanelRaised}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsBinding}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource ArcadeCyan}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource ArcadeBlack}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ChipText" BasedOn="{StaticResource ArcadeHeading}" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="19" />
+            <Setter Property="Margin" Value="10,0" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsBound}" Value="False">
+                    <Setter Property="Foreground" Value="{StaticResource ArcadeTextDim}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsHot}" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource ArcadeLime}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsBinding}" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource ArcadeBlack}" />
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard x:Name="ChipBlink" Storyboard="{StaticResource ArcadeBlink}" />
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <StopStoryboard BeginStoryboardName="ChipBlink" />
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <ItemsPanelTemplate x:Key="CanvasPanel">
+            <Canvas />
+        </ItemsPanelTemplate>
+    </UserControl.Resources>
+
+    <Viewbox Stretch="Uniform">
+        <Canvas Width="{x:Static vm:GamepadLayout.CanvasWidth}" Height="{x:Static vm:GamepadLayout.CanvasHeight}">
+            <!-- Body -->
+            <Path
+                Data="{x:Static vm:GamepadLayout.Body}"
+                Fill="{StaticResource PadBodyFill}"
+                Stroke="{StaticResource ArcadeText}"
+                StrokeLineJoin="Round"
+                StrokeThickness="3.5" />
+            <Path
+                Data="{x:Static vm:GamepadLayout.FaceLines}"
+                Stroke="{StaticResource ArcadeText}"
+                StrokeLineJoin="Round"
+                StrokeThickness="3" />
+            <Path
+                Data="{x:Static vm:GamepadLayout.OuterRings}"
+                Stroke="{StaticResource PadDim}"
+                StrokeThickness="2.5" />
+            <Path
+                Data="{x:Static vm:GamepadLayout.StickRings}"
+                Stroke="{StaticResource ArcadeText}"
+                StrokeThickness="3" />
+
+            <!-- Leader lines, under everything that lights up -->
+            <ItemsControl ItemsPanel="{StaticResource CanvasPanel}" ItemsSource="{Binding Rows}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:MappingRow}">
+                        <Polyline Points="{Binding LeaderPoints}" Style="{StaticResource PadLeader}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- The inputs themselves -->
+            <ItemsControl ItemsPanel="{StaticResource CanvasPanel}" ItemsSource="{Binding Rows}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:MappingRow}">
+                        <Button Style="{StaticResource PadHotspot}">
+                            <Canvas>
+                                <Path Data="{Binding Shape}" Style="{StaticResource PadShape}" />
+                                <Path Data="{Binding Glyph}" Style="{StaticResource PadGlyph}" />
+                                <Grid
+                                    Canvas.Left="{Binding LetterLeft}"
+                                    Canvas.Top="{Binding LetterTop}"
+                                    Width="{x:Static vm:GamepadLayout.LetterBox}"
+                                    Height="{x:Static vm:GamepadLayout.LetterBox}">
+                                    <TextBlock Style="{StaticResource PadLetter}" Text="{Binding Letter}" />
+                                </Grid>
+                            </Canvas>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Path
+                Data="{x:Static vm:GamepadLayout.DpadCross}"
+                IsHitTestVisible="False"
+                Stroke="{StaticResource ArcadeText}"
+                StrokeLineJoin="Round"
+                StrokeThickness="3" />
+
+            <!-- Key labels: the only text on the drawing -->
+            <ItemsControl ItemsPanel="{StaticResource CanvasPanel}" ItemsSource="{Binding Rows}">
+                <ItemsControl.ItemContainerStyle>
+                    <Style TargetType="ContentPresenter">
+                        <Setter Property="Canvas.Left" Value="{Binding ChipLeft}" />
+                        <Setter Property="Canvas.Top" Value="{Binding ChipTop}" />
+                    </Style>
+                </ItemsControl.ItemContainerStyle>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:MappingRow}">
+                        <Button Style="{StaticResource PadHotspot}">
+                            <Grid Width="{Binding ChipWidth}" Height="{x:Static vm:GamepadLayout.ChipHeight}">
+                                <Border Margin="4,4,-4,-4" Background="{StaticResource ArcadeShadow}">
+                                    <Border.RenderTransform>
+                                        <SkewTransform AngleX="-14" CenterY="18" />
+                                    </Border.RenderTransform>
+                                </Border>
+                                <Border Style="{StaticResource ChipPlate}" />
+                                <TextBlock Style="{StaticResource ChipText}" Text="{Binding ChipText, Converter={StaticResource Upper}}" />
+                            </Grid>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Canvas>
+    </Viewbox>
+</UserControl>

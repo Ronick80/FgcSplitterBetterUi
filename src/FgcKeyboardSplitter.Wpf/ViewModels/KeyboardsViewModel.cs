@@ -28,7 +28,7 @@ public sealed partial class KeyboardsViewModel : ObservableObject
         _selection.PropertyChanged += (_, _) => OnPropertyChanged(nameof(Selected));
         for (int i = 0; i < MaxControllers; i++)
         {
-            Slots.Add(new SlotItem());
+            Slots.Add(new SlotItem { Number = i + 1 });
         }
 
         _engine.Polled += (_, _) => OnPolled();

@@ -10,6 +10,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ui:ThemesDictionary Theme="Dark" />
                 <ui:ControlsDictionary />
+                <ResourceDictionary Source="/FgcKeyboardSplitter;component/Theme/Arcade.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Rounded label that shows a state; Tag carries the StatusKind. -->

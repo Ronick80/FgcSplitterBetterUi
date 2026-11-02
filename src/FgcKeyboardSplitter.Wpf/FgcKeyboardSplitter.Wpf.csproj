@@ -6,6 +6,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>FgcKeyboardSplitter</AssemblyName>
     <RootNamespace>FgcKeyboardSplitter</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
     <FgcCoreCopyExtras>true</FgcCoreCopyExtras>
   </PropertyGroup>
 
@@ -20,6 +21,12 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="FgcKeyboardSplitter.Tests" />
+  </ItemGroup>
+
+  <!-- Heading font (SIL Open Font License); the licence has to travel with it. -->
+  <ItemGroup>
+    <Resource Include="Theme\Fonts\*.ttf" />
+    <None Include="Theme\Fonts\ChakraPetch-OFL.txt" Link="licenses\ChakraPetch-OFL.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
   </ItemGroup>
 
   <Import Project="..\..\build\FgcCore.targets" />
