@@ -194,6 +194,18 @@ public sealed partial class MappingViewModel : ObservableObject
         }
     }
 
+    [RelayCommand(CanExecute = nameof(CanClearKey))]
+    private void ClearKey(MappingRow? row)
+    {
+        if (row is null)
+        {
+            return;
+        }
+
+        CancelBinding();
+        Assign(row.Input, KeyCode.Unbound);
+    }
+
     [RelayCommand]
     private void ResetDefaults()
     {
@@ -298,6 +310,8 @@ public sealed partial class MappingViewModel : ObservableObject
         RefreshProfiles();
         NotifyProfileState();
     }
+
+    private bool CanClearKey(MappingRow? row) => row is { KeyCode: not KeyCode.Unbound };
 
     private bool CanSave() => HasCurrentProfile && IsDirty;
 

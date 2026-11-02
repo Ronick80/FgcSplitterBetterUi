@@ -207,6 +207,10 @@
                                                             Command="{Binding PlacementTarget.Tag.PickKeyCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                                             CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                                             Header="Pick a key from a list..." />
+                                                        <MenuItem
+                                                            Command="{Binding PlacementTarget.Tag.ClearKeyCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                            CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                            Header="Clear" />
                                                     </ContextMenu>
                                                 </ui:Button.ContextMenu>
                                                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">

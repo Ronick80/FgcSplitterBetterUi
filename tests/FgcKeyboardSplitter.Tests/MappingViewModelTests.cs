@@ -200,6 +200,33 @@ public class MappingViewModelTests
     }
 
     [Fact]
+    public void ClearingAnInputUnbindsItAndAppliesItLive()
+    {
+        Select();
+        MappingRow row = Row(XboxInput.A);
+        Assert.True(_vm.ClearKeyCommand.CanExecute(row));
+
+        _vm.ClearKeyCommand.Execute(row);
+
+        Assert.Equal(KeyCode.Unbound, row.KeyCode);
+        Assert.Equal(KeyCode.Unbound, _client.Mappings[Id][XboxInput.A]);
+        Assert.True(_vm.IsDirty);
+        Assert.False(_vm.ClearKeyCommand.CanExecute(row));
+    }
+
+    [Fact]
+    public void ClearingStopsAnOpenBinding()
+    {
+        Select();
+        _vm.ToggleBindCommand.Execute(Row(XboxInput.B));
+
+        _vm.ClearKeyCommand.Execute(Row(XboxInput.A));
+
+        Assert.False(Row(XboxInput.B).IsBinding);
+        Assert.False(_capture.IsCapturing);
+    }
+
+    [Fact]
     public async Task PickingFromTheListBindsThatKey()
     {
         Select();
