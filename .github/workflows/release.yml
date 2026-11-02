@@ -36,6 +36,11 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
+      # Fetched once up front so parallel project builds do not each try to download it.
+      - name: Fetch the engine
+        shell: pwsh
+        run: ./scripts/Get-FgcCore.ps1
+
       # EngineTests call the real FgcCore.dll against the machine's drivers, so they stay on the developer's PC.
       - name: Test
         run: dotnet test --configuration Release --filter "FullyQualifiedName!~EngineTests"
