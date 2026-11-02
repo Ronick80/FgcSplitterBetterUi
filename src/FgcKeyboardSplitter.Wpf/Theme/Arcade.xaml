@@ -28,6 +28,8 @@
     <SolidColorBrush x:Key="ArcadeShadow" Color="#000000" />
 
     <FontFamily x:Key="ArcadeFont">Bahnschrift, Segoe UI</FontFamily>
+    <!-- Chakra Petch: cut corners instead of curves, for the big page titles -->
+    <FontFamily x:Key="ArcadeTitleFont">/FgcKeyboardSplitter;component/Theme/Fonts/#Chakra Petch</FontFamily>
 
     <theme:UpperCaseConverter x:Key="Upper" />
 
@@ -344,20 +346,26 @@
                                 Style="{StaticResource ArcadeHeading}"
                                 Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" />
                         </Border>
-                        <Grid Margin="0,4,0,0" HorizontalAlignment="Left">
+                        <Grid Margin="-4,0,0,0" HorizontalAlignment="Left">
                             <Grid.RenderTransform>
                                 <SkewTransform AngleX="-10" />
                             </Grid.RenderTransform>
-                            <TextBlock
-                                Margin="5,5,0,0"
-                                FontSize="68"
-                                Foreground="{StaticResource ArcadeCyan}"
-                                Style="{StaticResource ArcadeHeading}"
+                            <theme:OutlinedText
+                                Margin="6,6,0,0"
+                                Fill="{StaticResource ArcadeCyan}"
+                                FontFamily="{StaticResource ArcadeTitleFont}"
+                                FontSize="62"
+                                FontWeight="Bold"
+                                Stroke="{StaticResource ArcadeBlack}"
+                                StrokeThickness="4"
                                 Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" />
-                            <TextBlock
-                                FontSize="68"
-                                Foreground="{StaticResource ArcadeLime}"
-                                Style="{StaticResource ArcadeHeading}"
+                            <theme:OutlinedText
+                                Fill="{StaticResource ArcadeLime}"
+                                FontFamily="{StaticResource ArcadeTitleFont}"
+                                FontSize="62"
+                                FontWeight="Bold"
+                                Stroke="{StaticResource ArcadeBlack}"
+                                StrokeThickness="4"
                                 Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" />
                         </Grid>
                     </StackPanel>
