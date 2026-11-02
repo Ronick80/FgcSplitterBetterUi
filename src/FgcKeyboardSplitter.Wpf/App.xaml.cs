@@ -40,11 +40,19 @@ public partial class App : Application
         _engine = new EngineService(client);
 
         var window = new MainWindow();
-        var keyboardsViewModel = new KeyboardsViewModel(_engine, window);
+        var selection = new KeyboardSelection();
+        var capture = new KeyCaptureService();
+        capture.Attach(window);
+        var dialogs = new DialogService();
+        dialogs.SetHost(window.DialogHost);
+
+        var keyboardsViewModel = new KeyboardsViewModel(_engine, window, selection);
+        var mappingViewModel = new MappingViewModel(_engine, selection, capture, dialogs);
         var driversViewModel = new DriversViewModel(_engine);
         window.SetPages(new Dictionary<Type, object>
         {
             [typeof(KeyboardsPage)] = new KeyboardsPage(keyboardsViewModel),
+            [typeof(MappingPage)] = new MappingPage(mappingViewModel),
             [typeof(DriversPage)] = new DriversPage(driversViewModel),
         });
 

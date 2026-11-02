@@ -14,15 +14,18 @@ public sealed partial class KeyboardsViewModel : ObservableObject
 
     private readonly EngineService _engine;
     private readonly INavigator _navigator;
+    private readonly KeyboardSelection _selection;
     private DateTime _identifyStartedAt;
     private DateTime _limitCheckedAt = DateTime.MinValue;
     private bool _limitAllowed = true;
     private bool _limitDirty;
 
-    public KeyboardsViewModel(EngineService engine, INavigator navigator)
+    public KeyboardsViewModel(EngineService engine, INavigator navigator, KeyboardSelection selection)
     {
         _engine = engine;
         _navigator = navigator;
+        _selection = selection;
+        _selection.PropertyChanged += (_, _) => OnPropertyChanged(nameof(Selected));
         for (int i = 0; i < MaxControllers; i++)
         {
             Slots.Add(new SlotItem());
@@ -43,8 +46,11 @@ public sealed partial class KeyboardsViewModel : ObservableObject
 
     public ObservableCollection<SlotItem> Slots { get; } = [];
 
-    [ObservableProperty]
-    private KeyboardItem? _selected;
+    public KeyboardItem? Selected
+    {
+        get => _selection.Selected;
+        set => _selection.Selected = value;
+    }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IdentifyButtonText), nameof(IdentifyHint))]
@@ -161,6 +167,16 @@ public sealed partial class KeyboardsViewModel : ObservableObject
 
     [RelayCommand]
     private void ShowDrivers() => _navigator.ShowDrivers();
+
+    [RelayCommand]
+    private void EditMapping(KeyboardItem? keyboard)
+    {
+        if (keyboard is not null)
+        {
+            Selected = keyboard;
+            _navigator.ShowMapping();
+        }
+    }
 
     private bool CanStart(KeyboardItem? keyboard) => keyboard is { IsRunning: false } && _engine.DriversReady && _limitAllowed;
 

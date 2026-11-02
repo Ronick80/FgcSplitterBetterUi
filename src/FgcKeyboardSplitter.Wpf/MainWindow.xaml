@@ -31,6 +31,10 @@
                     Content="Keyboards"
                     Icon="{ui:SymbolIcon Keyboard24}"
                     TargetPageType="{x:Type views:KeyboardsPage}" />
+                <ui:NavigationViewItem
+                    Content="Mapping"
+                    Icon="{ui:SymbolIcon XboxController24}"
+                    TargetPageType="{x:Type views:MappingPage}" />
             </ui:NavigationView.MenuItems>
             <ui:NavigationView.FooterMenuItems>
                 <ui:NavigationViewItem
@@ -39,5 +43,10 @@
                     TargetPageType="{x:Type views:DriversPage}" />
             </ui:NavigationView.FooterMenuItems>
         </ui:NavigationView>
+
+        <ui:ContentDialogHost
+            x:Name="RootDialogHost"
+            Grid.Row="0"
+            Grid.RowSpan="2" />
     </Grid>
 </ui:FluentWindow>

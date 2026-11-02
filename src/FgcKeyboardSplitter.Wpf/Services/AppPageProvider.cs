@@ -11,4 +11,6 @@ public sealed class AppPageProvider(IReadOnlyDictionary<Type, object> pages) : I
 public interface INavigator
 {
     void ShowDrivers();
+
+    void ShowMapping();
 }

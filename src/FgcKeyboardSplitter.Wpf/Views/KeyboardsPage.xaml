@@ -150,6 +150,7 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
                             <ui:SymbolIcon
@@ -174,7 +175,15 @@
                                 <ui:TextBlock FontTypography="Caption" Text="{Binding StatusText}" />
                             </Border>
 
-                            <Grid Grid.Column="3">
+                            <ui:Button
+                                Grid.Column="3"
+                                Margin="0,0,8,0"
+                                Command="{Binding DataContext.EditMappingCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                CommandParameter="{Binding}"
+                                Content="Edit mapping"
+                                Icon="{ui:SymbolIcon XboxController24}" />
+
+                            <Grid Grid.Column="4">
                                 <Grid>
                                     <Grid.Style>
                                         <Style TargetType="Grid">

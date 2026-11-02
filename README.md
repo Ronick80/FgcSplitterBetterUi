@@ -4,8 +4,9 @@ A Windows desktop front end for [FGC Keyboard Splitter](https://github.com/Ronic
 (`FgcCore.dll`, the keyboard capture and virtual Xbox controllers) lives in that repository; this one only holds the
 user interface and does not contain any engine code.
 
-Status: the interop layer and the app shell are done (Keyboards page with start, stop and identify; Drivers page with
-the elevated driver setup launcher). Profiles, mapping, the controller diagram and the latency page are still to do.
+Status: the interop layer and the app shell are done (Keyboards page with start, stop and identify; Mapping page with
+profiles and key binding; Drivers page with the elevated driver setup launcher). The controller diagram and the
+latency page are still to do.
 
 ## How it fits together
 

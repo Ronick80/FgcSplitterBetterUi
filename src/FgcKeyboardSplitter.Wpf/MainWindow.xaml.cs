@@ -19,5 +19,9 @@ public partial class MainWindow : FluentWindow, INavigator
         Loaded += (_, _) => RootNavigation.Navigate(typeof(KeyboardsPage));
     }
 
+    public ContentDialogHost DialogHost => RootDialogHost;
+
     public void ShowDrivers() => RootNavigation.Navigate(typeof(DriversPage));
+
+    public void ShowMapping() => RootNavigation.Navigate(typeof(MappingPage));
 }
