@@ -35,6 +35,10 @@
                     Content="Mapping"
                     Icon="{ui:SymbolIcon XboxController24}"
                     TargetPageType="{x:Type views:MappingPage}" />
+                <ui:NavigationViewItem
+                    Content="Latency"
+                    Icon="{ui:SymbolIcon Timer24}"
+                    TargetPageType="{x:Type views:LatencyPage}" />
             </ui:NavigationView.MenuItems>
             <ui:NavigationView.FooterMenuItems>
                 <ui:NavigationViewItem

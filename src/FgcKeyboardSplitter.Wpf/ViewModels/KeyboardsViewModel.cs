@@ -291,7 +291,7 @@ public sealed partial class KeyboardsViewModel : ObservableObject
 
     private void OnEngineEvent(EngineEvent engineEvent)
     {
-        string name = Keyboards.FirstOrDefault(k => k.HardwareId == engineEvent.HardwareId)?.DisplayName ?? engineEvent.HardwareId;
+        string name = Keyboards.FirstOrDefault(k => k.HardwareId == engineEvent.HardwareId)?.Title ?? engineEvent.HardwareId;
         Notices.Add(new Notice(engineEvent.Type == EngineEventType.KeyboardDisconnected
             ? $"{name} was unplugged. Its mapping stopped and the virtual controller was released."
             : $"{name} stopped unexpectedly (lost contact with the keyboard driver). Click Start to resume."));

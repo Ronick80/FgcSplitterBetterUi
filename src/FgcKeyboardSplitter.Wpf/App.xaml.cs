@@ -49,10 +49,12 @@ public partial class App : Application
         var keyboardsViewModel = new KeyboardsViewModel(_engine, window, selection);
         var mappingViewModel = new MappingViewModel(_engine, selection, capture, dialogs);
         var driversViewModel = new DriversViewModel(_engine);
+        var latencyViewModel = new LatencyViewModel(_engine, keyboardsViewModel);
         window.SetPages(new Dictionary<Type, object>
         {
             [typeof(KeyboardsPage)] = new KeyboardsPage(keyboardsViewModel),
             [typeof(MappingPage)] = new MappingPage(mappingViewModel),
+            [typeof(LatencyPage)] = new LatencyPage(latencyViewModel),
             [typeof(DriversPage)] = new DriversPage(driversViewModel),
         });
 

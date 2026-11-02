@@ -4,7 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:FgcKeyboardSplitter.ViewModels"
-    Title="Keyboards">
+    Title="Keyboards"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}">
     <Grid Margin="28,20,28,24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

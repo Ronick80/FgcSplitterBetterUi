@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fgc.Interop.Tests", "tests\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FgcKeyboardSplitter.Wpf", "src\FgcKeyboardSplitter.Wpf\FgcKeyboardSplitter.Wpf.csproj", "{46AAAC4B-E0C3-4862-AA57-8398562AD626}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FgcKeyboardSplitter.Tests", "tests\FgcKeyboardSplitter.Tests\FgcKeyboardSplitter.Tests.csproj", "{A28CD2FC-3ADF-4979-BF8B-497B9DBE3C0A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +61,18 @@ Global
 		{46AAAC4B-E0C3-4862-AA57-8398562AD626}.Release|x64.Build.0 = Release|Any CPU
 		{46AAAC4B-E0C3-4862-AA57-8398562AD626}.Release|x86.ActiveCfg = Release|Any CPU
 		{46AAAC4B-E0C3-4862-AA57-8398562AD626}.Release|x86.Build.0 = Release|Any CPU
+		{A28CD2FC-3ADF-4979-BF8B-497B9DBE3C0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A28CD2FC-3ADF-4979-BF8B-497B9DBE3C0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A28CD2FC-3ADF-4979-BF8B-497B9DBE3C0A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A28CD2FC-3ADF-4979-BF8B-497B9DBE3C0A}.Debug|x64.Build.0 = Debug|Any CPU
+		{A28CD2FC-3ADF-4979-BF8B-497B9DBE3C0A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A28CD2FC-3ADF-4979-BF8B-497B9DBE3C0A}.Debug|x86.Build.0 = Debug|Any CPU
+		{A28CD2FC-3ADF-4979-BF8B-497B9DBE3C0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A28CD2FC-3ADF-4979-BF8B-497B9DBE3C0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A28CD2FC-3ADF-4979-BF8B-497B9DBE3C0A}.Release|x64.ActiveCfg = Release|Any CPU
+		{A28CD2FC-3ADF-4979-BF8B-497B9DBE3C0A}.Release|x64.Build.0 = Release|Any CPU
+		{A28CD2FC-3ADF-4979-BF8B-497B9DBE3C0A}.Release|x86.ActiveCfg = Release|Any CPU
+		{A28CD2FC-3ADF-4979-BF8B-497B9DBE3C0A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -65,5 +81,6 @@ Global
 		{26A3CF88-7206-4246-97E7-7D8E39728877} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{EC74AC42-5CCD-47BB-841C-360E92687951} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{46AAAC4B-E0C3-4862-AA57-8398562AD626} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{A28CD2FC-3ADF-4979-BF8B-497B9DBE3C0A} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal

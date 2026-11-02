@@ -13,7 +13,7 @@ public sealed class FgcException(FgcResult result, string message) : Exception(m
 /// <see cref="Dispose"/> must not overlap with any other call. Methods return the engine's result code and fill
 /// their out value only on success.
 /// </summary>
-public sealed class FgcClient : IDisposable
+public sealed class FgcClient : IFgcClient
 {
     /// <summary>The C API version this wrapper was written for.</summary>
     public const uint SupportedApiVersion = 1;
@@ -113,6 +113,8 @@ public sealed class FgcClient : IDisposable
         NativeMethods.GetDefaultMapping(ref native);
         return Mapping.FromNative(native);
     }
+
+    public Mapping CreateDefaultMapping() => GetDefaultMapping();
 
     /// <summary>The keyboard's current mapping; a keyboard with none starts from its last-used profile.</summary>
     public FgcResult GetMapping(string hardwareId, out Mapping mapping)

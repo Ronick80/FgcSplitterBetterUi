@@ -4,7 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:FgcKeyboardSplitter.ViewModels"
-    Title="Mapping">
+    Title="Mapping"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}">
     <Grid Margin="28,20,28,24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -146,8 +147,122 @@
                     Icon="{ui:SymbolIcon ArrowReset24}" />
             </Grid>
 
-            <!-- Bindings, grouped -->
-            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <!-- Bindings: controller drawing and grouped list -->
+            <TabControl Grid.Row="2">
+                <TabItem Header="Controller">
+                    <Viewbox Margin="0,12,0,0" Stretch="Uniform">
+                        <Canvas Width="850" Height="450">
+                            <Path
+                                Data="M 110,54 C 190,40 280,44 330,48 L 510,48 C 560,44 650,40 730,54 C 790,66 815,160 830,270 C 840,350 840,418 808,434 C 772,448 730,432 714,414 L 126,414 C 110,432 68,448 32,434 C 0,418 0,350 10,270 C 25,160 50,66 110,54 Z"
+                                Fill="{DynamicResource ControlFillColorSecondaryBrush}"
+                                Stroke="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                StrokeThickness="2" />
+                            <ItemsControl
+                                Width="850"
+                                Height="450"
+                                ItemsSource="{Binding Rows}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <Canvas />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemContainerStyle>
+                                    <Style TargetType="ContentPresenter">
+                                        <Setter Property="Canvas.Left" Value="{Binding X}" />
+                                        <Setter Property="Canvas.Top" Value="{Binding Y}" />
+                                    </Style>
+                                </ItemsControl.ItemContainerStyle>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type vm:MappingRow}">
+                                        <Border Width="76" Height="44" CornerRadius="8">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="BorderThickness" Value="1.5" />
+                                                    <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsShared}" Value="True">
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCautionBrush}" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsBinding}" Value="True">
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+                                                            <Setter Property="BorderThickness" Value="2.5" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <ui:Button
+                                                Padding="2"
+                                                HorizontalAlignment="Stretch"
+                                                VerticalAlignment="Stretch"
+                                                HorizontalContentAlignment="Center"
+                                                Appearance="Transparent"
+                                                Command="{Binding DataContext.ToggleBindCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                CommandParameter="{Binding}"
+                                                Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                ToolTip="{Binding Label}">
+                                                <ui:Button.ContextMenu>
+                                                    <ContextMenu>
+                                                        <MenuItem
+                                                            Command="{Binding PlacementTarget.Tag.PickKeyCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                            CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                            Header="Pick a key from a list..." />
+                                                    </ContextMenu>
+                                                </ui:Button.ContextMenu>
+                                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                                                        <Ellipse
+                                                            Width="9"
+                                                            Height="9"
+                                                            Margin="0,0,4,0"
+                                                            Tag="{Binding Accent}">
+                                                            <Ellipse.Style>
+                                                                <Style TargetType="Ellipse">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                    <Style.Triggers>
+                                                                        <Trigger Property="Tag" Value="{x:Static vm:ChipAccent.A}">
+                                                                            <Setter Property="Visibility" Value="Visible" />
+                                                                            <Setter Property="Fill" Value="#6DB84A" />
+                                                                        </Trigger>
+                                                                        <Trigger Property="Tag" Value="{x:Static vm:ChipAccent.B}">
+                                                                            <Setter Property="Visibility" Value="Visible" />
+                                                                            <Setter Property="Fill" Value="#E5533D" />
+                                                                        </Trigger>
+                                                                        <Trigger Property="Tag" Value="{x:Static vm:ChipAccent.X}">
+                                                                            <Setter Property="Visibility" Value="Visible" />
+                                                                            <Setter Property="Fill" Value="#3A8EE6" />
+                                                                        </Trigger>
+                                                                        <Trigger Property="Tag" Value="{x:Static vm:ChipAccent.Y}">
+                                                                            <Setter Property="Visibility" Value="Visible" />
+                                                                            <Setter Property="Fill" Value="#F2C230" />
+                                                                        </Trigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Ellipse.Style>
+                                                        </Ellipse>
+                                                        <ui:TextBlock
+                                                            FontSize="11"
+                                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                            Text="{Binding ShortLabel}" />
+                                                    </StackPanel>
+                                                    <ui:TextBlock
+                                                        MaxWidth="68"
+                                                        HorizontalAlignment="Center"
+                                                        FontSize="13"
+                                                        FontWeight="SemiBold"
+                                                        Text="{Binding ChipText}"
+                                                        TextTrimming="CharacterEllipsis" />
+                                                </StackPanel>
+                                            </ui:Button>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Canvas>
+                    </Viewbox>
+                </TabItem>
+                <TabItem Header="List">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{Binding RowsView}">
                     <ItemsControl.GroupStyle>
                         <GroupStyle>
@@ -206,6 +321,8 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
+                </TabItem>
+            </TabControl>
         </Grid>
     </Grid>
 </Page>

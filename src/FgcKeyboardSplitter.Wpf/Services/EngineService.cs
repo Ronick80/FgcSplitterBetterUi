@@ -8,14 +8,14 @@ public sealed class EngineService : IDisposable
 {
     private readonly DispatcherTimer _timer;
 
-    public EngineService(FgcClient client)
+    public EngineService(IFgcClient client)
     {
         Client = client;
         _timer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(200) };
         _timer.Tick += (_, _) => Poll();
     }
 
-    public FgcClient Client { get; }
+    public IFgcClient Client { get; }
 
     public FgcResult DriverResult { get; private set; } = FgcResult.NotFound;
 
@@ -63,7 +63,7 @@ public sealed class EngineService : IDisposable
         Client.Dispose();
     }
 
-    private void Poll()
+    internal void Poll()
     {
         while (Client.PollEvent(out EngineEvent? engineEvent) == FgcResult.Ok && engineEvent is { } received)
         {

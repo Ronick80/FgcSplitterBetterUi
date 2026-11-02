@@ -4,11 +4,22 @@ using Fgc.Interop;
 
 namespace FgcKeyboardSplitter.Services;
 
+/// <summary>Source of raw key presses while the user binds a key.</summary>
+public interface IKeyCapture
+{
+    bool IsCapturing { get; set; }
+
+    event Action<ushort>? KeyPressed;
+
+    /// <summary>Raised when capturing should stop without a key, for example because the window lost focus.</summary>
+    event Action? Cancelled;
+}
+
 /// <summary>
 /// Reads raw scan codes from the window's key messages while a binding is being captured. While capturing, every
 /// key press is swallowed so Tab, Enter, Alt and the arrow keys cannot also navigate or activate controls.
 /// </summary>
-public sealed class KeyCaptureService
+public sealed class KeyCaptureService : IKeyCapture
 {
     private const int WmKeyDown = 0x0100;
     private const int WmSysKeyDown = 0x0104;
@@ -18,7 +29,6 @@ public sealed class KeyCaptureService
 
     public event Action<ushort>? KeyPressed;
 
-    /// <summary>Raised when capturing should stop without a key, for example because the window lost focus.</summary>
     public event Action? Cancelled;
 
     public void Attach(Window window)

@@ -16,12 +16,20 @@ public sealed partial class MappingRow(XboxInput input, string label, string gro
 
     public string Group { get; } = group;
 
+    public double X => GamepadLayout.Spots[Input].X;
+
+    public double Y => GamepadLayout.Spots[Input].Y;
+
+    public string ShortLabel => GamepadLayout.Spots[Input].ShortLabel;
+
+    public ChipAccent Accent => GamepadLayout.Spots[Input].Accent;
+
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(KeyName), nameof(ButtonText))]
+    [NotifyPropertyChangedFor(nameof(KeyName), nameof(ButtonText), nameof(ChipText))]
     private ushort _keyCode;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ButtonText))]
+    [NotifyPropertyChangedFor(nameof(ButtonText), nameof(ChipText))]
     private bool _isBinding;
 
     /// <summary>The same key is also bound to another input.</summary>
@@ -31,6 +39,9 @@ public sealed partial class MappingRow(XboxInput input, string label, string gro
     public string KeyName => KeyNames.GetName(KeyCode);
 
     public string ButtonText => IsBinding ? "Press a key..." : KeyName;
+
+    /// <summary>Shorter than <see cref="ButtonText"/> so it fits on the controller drawing.</summary>
+    public string ChipText => IsBinding ? "Press key" : KeyName;
 }
 
 public sealed partial class MappingViewModel : ObservableObject
@@ -59,14 +70,14 @@ public sealed partial class MappingViewModel : ObservableObject
 
     private readonly EngineService _engine;
     private readonly KeyboardSelection _selection;
-    private readonly KeyCaptureService _capture;
+    private readonly IKeyCapture _capture;
     private readonly IDialogService _dialogs;
     private readonly Dictionary<string, ProfileState> _states = [];
     private Mapping _mapping = new();
     private MappingRow? _bindingRow;
     private bool _syncingProfile;
 
-    public MappingViewModel(EngineService engine, KeyboardSelection selection, KeyCaptureService capture, IDialogService dialogs)
+    public MappingViewModel(EngineService engine, KeyboardSelection selection, IKeyCapture capture, IDialogService dialogs)
     {
         _engine = engine;
         _selection = selection;
@@ -187,7 +198,7 @@ public sealed partial class MappingViewModel : ObservableObject
     private void ResetDefaults()
     {
         CancelBinding();
-        _mapping = FgcClient.GetDefaultMapping();
+        _mapping = _engine.Client.CreateDefaultMapping();
         ApplyMapping();
     }
 

@@ -3,7 +3,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    Title="Drivers">
+    Title="Drivers"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="28,20,28,24">
             <ui:TextBlock FontTypography="Title" Text="Drivers" />

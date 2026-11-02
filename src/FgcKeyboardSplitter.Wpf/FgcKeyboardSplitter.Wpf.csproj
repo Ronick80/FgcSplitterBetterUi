@@ -19,6 +19,10 @@
     <ProjectReference Include="..\Fgc.Interop\Fgc.Interop.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="FgcKeyboardSplitter.Tests" />
+  </ItemGroup>
+
   <Import Project="..\..\build\FgcCore.targets" />
 
 </Project>
