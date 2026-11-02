@@ -39,6 +39,10 @@ public sealed partial class KeyboardItem(string hardwareId, string displayName) 
 
 public sealed partial class SlotItem : ObservableObject
 {
+    public int Number { get; init; }
+
+    public string PlayerLabel => $"P{Number}";
+
     [ObservableProperty]
     private SlotKind _kind;
 }

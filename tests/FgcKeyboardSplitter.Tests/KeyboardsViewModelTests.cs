@@ -173,6 +173,7 @@ public class KeyboardsViewModelTests
         _engine.Poll();
 
         Assert.Equal(new[] { SlotKind.Mine, SlotKind.Other, SlotKind.Free, SlotKind.Free }, _vm.Slots.Select(s => s.Kind));
+        Assert.Equal(new[] { "P1", "P2", "P3", "P4" }, _vm.Slots.Select(s => s.PlayerLabel));
         Assert.Equal("1 other + 1 from this app = 2 of 4 slots used", _vm.SlotsText);
         Assert.False(_vm.SlotsFull);
     }

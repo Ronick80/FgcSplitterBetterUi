@@ -2,267 +2,490 @@
     x:Class="FgcKeyboardSplitter.Views.KeyboardsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:FgcKeyboardSplitter.ViewModels"
     Title="Keyboards"
-    Foreground="{DynamicResource TextFillColorPrimaryBrush}">
-    <Grid Margin="28,20,28,24">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    TextElement.FontFamily="Bahnschrift, Segoe UI"
+    TextElement.Foreground="#F3F7EA">
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/FgcKeyboardSplitter;component/Theme/Arcade.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
 
-        <StackPanel Grid.Row="0">
-            <ui:TextBlock FontTypography="Title" Text="Keyboards" />
-            <ui:TextBlock
-                Margin="0,4,0,0"
-                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                Text="Start a keyboard to turn it into its own virtual Xbox controller. While it runs, its keys are hidden from other programs."
-                TextWrapping="Wrap" />
-        </StackPanel>
+    <Grid ClipToBounds="True">
+        <!-- Backdrop: black, a lime glow top right, halftone dots fading downwards, and two speed slashes -->
+        <Rectangle Fill="{StaticResource ArcadeBlack}" />
+        <Rectangle>
+            <Rectangle.Fill>
+                <RadialGradientBrush Center="0.95,0" GradientOrigin="0.95,0" RadiusX="0.7" RadiusY="0.9">
+                    <GradientStop Offset="0" Color="#3ACDF24B" />
+                    <GradientStop Offset="1" Color="#00CDF24B" />
+                </RadialGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Rectangle Fill="{StaticResource ArcadeHalftone}" Opacity="0.16">
+            <Rectangle.OpacityMask>
+                <LinearGradientBrush StartPoint="1,0" EndPoint="0.3,0.8">
+                    <GradientStop Offset="0" Color="Black" />
+                    <GradientStop Offset="1" Color="Transparent" />
+                </LinearGradientBrush>
+            </Rectangle.OpacityMask>
+        </Rectangle>
+        <Canvas
+            Width="260"
+            HorizontalAlignment="Right"
+            IsHitTestVisible="False">
+            <Polygon Fill="{StaticResource ArcadeLime}" Opacity="0.9" Points="110,0 190,0 70,180 -10,180" />
+            <Polygon Fill="{StaticResource ArcadeCyan}" Opacity="0.55" Points="210,0 234,0 114,180 90,180" />
+        </Canvas>
 
-        <!-- Driver warning -->
-        <StackPanel Grid.Row="1" Margin="0,16,0,0">
-            <StackPanel.Style>
-                <Style TargetType="StackPanel">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding ShowDriverWarning}" Value="True">
-                            <Setter Property="Visibility" Value="Visible" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </StackPanel.Style>
-            <ui:InfoBar
-                Title="A driver is missing"
-                IsClosable="False"
-                IsOpen="True"
-                Message="Keyboards cannot start until both drivers are installed and active."
-                Severity="Warning" />
-            <ui:Button
-                Margin="0,8,0,0"
-                Appearance="Secondary"
-                Command="{Binding ShowDriversCommand}"
-                Content="Open Drivers page"
-                Icon="{ui:SymbolIcon ShieldCheckmark24}" />
-        </StackPanel>
+        <Grid Margin="32,26,32,24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-        <!-- Notices from the engine -->
-        <ItemsControl Grid.Row="2" ItemsSource="{Binding Notices}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="{x:Type vm:Notice}">
-                    <Grid Margin="0,12,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <ui:InfoBar
-                            Title="Keyboard stopped"
-                            IsClosable="False"
-                            IsOpen="True"
-                            Message="{Binding Text}"
-                            Severity="Warning" />
-                        <ui:Button
-                            Grid.Column="1"
-                            Margin="8,0,0,0"
-                            VerticalAlignment="Top"
-                            Appearance="Transparent"
-                            Command="{Binding DataContext.DismissNoticeCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                            CommandParameter="{Binding}"
-                            Icon="{ui:SymbolIcon Dismiss24}"
-                            ToolTip="Dismiss" />
-                    </Grid>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-
-        <!-- Controller slots -->
-        <ui:Card Grid.Row="3" Margin="0,16,0,12">
-            <StackPanel VerticalAlignment="Center">
-                <ui:TextBlock FontTypography="BodyStrong" Text="Controller slots" />
-                <ItemsControl Margin="0,8,0,6" ItemsSource="{Binding Slots}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="{x:Type vm:SlotItem}">
-                            <Border Style="{StaticResource SlotPip}" Tag="{Binding Kind}" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <ui:TextBlock
-                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                    Text="{Binding SlotsText}"
-                    TextWrapping="Wrap" />
-                <ui:TextBlock
-                    Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                    Text="No free slot: Windows supports at most 4 controllers in total.">
-                    <ui:TextBlock.Style>
-                        <Style TargetType="ui:TextBlock">
-                            <Setter Property="Visibility" Value="Collapsed" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding SlotsFull}" Value="True">
-                                    <Setter Property="Visibility" Value="Visible" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ui:TextBlock.Style>
-                </ui:TextBlock>
+            <!-- Header -->
+            <StackPanel Grid.Row="0">
+                <Border Style="{StaticResource ArcadeTag}">
+                    <TextBlock
+                        FontSize="13"
+                        Foreground="{StaticResource ArcadeBlack}"
+                        Style="{StaticResource ArcadeHeading}"
+                        Text="PLAYER SELECT" />
+                </Border>
+                <Grid Margin="0,4,0,0" HorizontalAlignment="Left">
+                    <Grid.RenderTransform>
+                        <SkewTransform AngleX="-10" />
+                    </Grid.RenderTransform>
+                    <TextBlock
+                        Margin="4,4,0,0"
+                        FontSize="58"
+                        Foreground="{StaticResource ArcadeCyan}"
+                        Style="{StaticResource ArcadeHeading}"
+                        Text="KEYBOARDS" />
+                    <TextBlock
+                        FontSize="58"
+                        Foreground="{StaticResource ArcadeLime}"
+                        Style="{StaticResource ArcadeHeading}"
+                        Text="KEYBOARDS" />
+                </Grid>
+                <TextBlock
+                    MaxWidth="440"
+                    Margin="0,2,0,0"
+                    HorizontalAlignment="Left"
+                    Style="{StaticResource ArcadeBody}"
+                    Text="Start a keyboard to turn it into its own virtual Xbox controller. While it runs, its keys are hidden from other programs." />
             </StackPanel>
-        </ui:Card>
 
-        <!-- List actions -->
-        <StackPanel Grid.Row="4" Margin="0,0,0,12" Orientation="Horizontal">
-            <ui:Button
-                Margin="0,0,8,0"
-                Command="{Binding RefreshCommand}"
-                Content="Refresh list"
-                Icon="{ui:SymbolIcon ArrowSync24}" />
-            <ui:Button
-                Margin="0,0,8,0"
-                Command="{Binding ToggleIdentifyCommand}"
-                Content="{Binding IdentifyButtonText}"
-                Icon="{ui:SymbolIcon Search24}" />
-            <ui:Button
-                Appearance="Danger"
-                Command="{Binding StopAllCommand}"
-                Content="Stop all"
-                Icon="{ui:SymbolIcon Stop24}" />
-        </StackPanel>
-
-        <!-- Keyboard list -->
-        <Grid Grid.Row="5">
-            <ui:ListView
-                ItemsSource="{Binding Keyboards}"
-                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                SelectedItem="{Binding Selected}">
-                <ListView.ItemTemplate>
-                    <DataTemplate DataType="{x:Type vm:KeyboardItem}">
-                        <Grid Margin="6,6">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-
-                            <ui:SymbolIcon
-                                Margin="0,0,14,0"
-                                FontSize="26"
-                                Symbol="Keyboard24" />
-
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <ui:TextBlock FontTypography="BodyStrong" Text="{Binding Title}" />
-                                <ui:TextBlock
-                                    FontTypography="Caption"
-                                    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                    Text="{Binding Subtitle}"
-                                    TextTrimming="CharacterEllipsis" />
-                            </StackPanel>
-
-                            <Border
-                                Grid.Column="2"
-                                Margin="12,0"
-                                Style="{StaticResource StatusPill}"
-                                Tag="{Binding StatusKind}">
-                                <ui:TextBlock FontTypography="Caption" Text="{Binding StatusText}" />
-                            </Border>
-
-                            <ui:Button
-                                Grid.Column="3"
-                                Margin="0,0,8,0"
-                                Command="{Binding DataContext.EditMappingCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                CommandParameter="{Binding}"
-                                Content="Edit mapping"
-                                Icon="{ui:SymbolIcon XboxController24}" />
-
-                            <Grid Grid.Column="4">
-                                <Grid>
-                                    <Grid.Style>
-                                        <Style TargetType="Grid">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Grid.Style>
-                                    <ui:Button
-                                        MinWidth="96"
-                                        Appearance="Primary"
-                                        Command="{Binding DataContext.StartCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                        CommandParameter="{Binding}"
-                                        Content="Start"
-                                        Icon="{ui:SymbolIcon Play24}" />
-                                </Grid>
-                                <Grid>
-                                    <Grid.Style>
-                                        <Style TargetType="Grid">
-                                            <Setter Property="Visibility" Value="Collapsed" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                                                    <Setter Property="Visibility" Value="Visible" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Grid.Style>
-                                    <ui:Button
-                                        MinWidth="96"
-                                        Command="{Binding DataContext.StopCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                        CommandParameter="{Binding}"
-                                        Content="Stop"
-                                        Icon="{ui:SymbolIcon Stop24}" />
-                                </Grid>
-                            </Grid>
-                        </Grid>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ui:ListView>
-
-            <ui:TextBlock
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                Text="No keyboards found. Plug one in and click Refresh list.">
-                <ui:TextBlock.Style>
-                    <Style TargetType="ui:TextBlock">
+            <!-- Driver warning -->
+            <Grid Grid.Row="1" Margin="0,18,0,0">
+                <Grid.Style>
+                    <Style TargetType="Grid">
                         <Setter Property="Visibility" Value="Collapsed" />
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding HasNoKeyboards}" Value="True">
+                            <DataTrigger Binding="{Binding ShowDriverWarning}" Value="True">
                                 <Setter Property="Visibility" Value="Visible" />
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
-                </ui:TextBlock.Style>
-            </ui:TextBlock>
-        </Grid>
+                </Grid.Style>
+                <Border Background="{StaticResource ArcadePanel}" BorderBrush="{StaticResource ArcadeLime}" BorderThickness="2">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="22" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Rectangle Fill="{StaticResource ArcadeHazard}" />
+                        <StackPanel Grid.Column="1" Margin="16,10" VerticalAlignment="Center">
+                            <TextBlock
+                                FontSize="18"
+                                Foreground="{StaticResource ArcadeLime}"
+                                Style="{StaticResource ArcadeHeading}"
+                                Text="DRIVER MISSING" />
+                            <TextBlock Style="{StaticResource ArcadeBody}" Text="Keyboards cannot start until both drivers are installed and active." />
+                        </StackPanel>
+                        <Button
+                            Grid.Column="2"
+                            Margin="0,0,16,0"
+                            VerticalAlignment="Center"
+                            Command="{Binding ShowDriversCommand}"
+                            Content="OPEN DRIVERS"
+                            Style="{StaticResource ArcadeButton}" />
+                    </Grid>
+                </Border>
+            </Grid>
 
-        <!-- Messages -->
-        <StackPanel Grid.Row="6" Margin="0,8,0,0">
-            <ui:TextBlock
-                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                Text="{Binding IdentifyHint}" />
-            <ui:TextBlock Foreground="{DynamicResource SystemFillColorCautionBrush}" Text="{Binding ListProblem}" />
-            <ui:TextBlock Text="{Binding StatusMessage}">
-                <ui:TextBlock.Style>
-                    <Style TargetType="ui:TextBlock">
-                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding StatusIsError}" Value="True">
-                                <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </ui:TextBlock.Style>
-            </ui:TextBlock>
-        </StackPanel>
+            <!-- Notices from the engine -->
+            <ItemsControl Grid.Row="2" ItemsSource="{Binding Notices}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:Notice}">
+                        <Border
+                            Margin="0,12,0,0"
+                            Background="{StaticResource ArcadePanel}"
+                            BorderBrush="{StaticResource ArcadeRed}"
+                            BorderThickness="2">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="8" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Rectangle Fill="{StaticResource ArcadeRed}" />
+                                <StackPanel Grid.Column="1" Margin="16,10">
+                                    <TextBlock
+                                        FontSize="18"
+                                        Foreground="{StaticResource ArcadeRed}"
+                                        Style="{StaticResource ArcadeHeading}"
+                                        Text="K.O. - KEYBOARD STOPPED" />
+                                    <TextBlock Style="{StaticResource ArcadeBody}" Text="{Binding Text}" />
+                                </StackPanel>
+                                <Button
+                                    Grid.Column="2"
+                                    Margin="0,0,16,0"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding DataContext.DismissNoticeCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                    CommandParameter="{Binding}"
+                                    Content="DISMISS"
+                                    Style="{StaticResource ArcadeButton}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Controller slots as player slots -->
+            <ContentControl Grid.Row="3" Margin="0,22,6,16" Style="{StaticResource ArcadeCard}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ItemsControl VerticalAlignment="Center" ItemsSource="{Binding Slots}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:SlotItem}">
+                                <Grid Width="84" Height="58" Margin="0,0,14,0">
+                                    <Border Margin="4,4,-4,-4" Background="{StaticResource ArcadeShadow}">
+                                        <Border.RenderTransform>
+                                            <SkewTransform AngleX="-14" CenterY="29" />
+                                        </Border.RenderTransform>
+                                    </Border>
+                                    <Border x:Name="Plate" BorderThickness="2">
+                                        <Border.RenderTransform>
+                                            <SkewTransform AngleX="-14" CenterY="29" />
+                                        </Border.RenderTransform>
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="{StaticResource ArcadePanelRaised}" />
+                                                <Setter Property="BorderBrush" Value="{StaticResource ArcadeLine}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Kind}" Value="{x:Static vm:SlotKind.Mine}">
+                                                        <Setter Property="Background" Value="{StaticResource ArcadeLime}" />
+                                                        <Setter Property="BorderBrush" Value="{StaticResource ArcadeBlack}" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Kind}" Value="{x:Static vm:SlotKind.Other}">
+                                                        <Setter Property="Background" Value="{StaticResource ArcadeCyan}" />
+                                                        <Setter Property="BorderBrush" Value="{StaticResource ArcadeBlack}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                    </Border>
+                                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <StackPanel.Resources>
+                                            <Style x:Key="SlotText" BasedOn="{StaticResource ArcadeHeading}" TargetType="TextBlock">
+                                                <Setter Property="HorizontalAlignment" Value="Center" />
+                                                <Setter Property="Foreground" Value="{StaticResource ArcadeTextDim}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Kind}" Value="{x:Static vm:SlotKind.Mine}">
+                                                        <Setter Property="Foreground" Value="{StaticResource ArcadeBlack}" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Kind}" Value="{x:Static vm:SlotKind.Other}">
+                                                        <Setter Property="Foreground" Value="{StaticResource ArcadeBlack}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Resources>
+                                        <TextBlock
+                                            FontSize="22"
+                                            Style="{StaticResource SlotText}"
+                                            Text="{Binding PlayerLabel}" />
+                                        <TextBlock FontSize="11">
+                                            <TextBlock.Style>
+                                                <Style BasedOn="{StaticResource SlotText}" TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="OPEN" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static vm:SlotKind.Mine}">
+                                                            <Setter Property="Text" Value="THIS APP" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static vm:SlotKind.Other}">
+                                                            <Setter Property="Text" Value="OTHER PAD" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock
+                            FontSize="20"
+                            Foreground="{StaticResource ArcadeLime}"
+                            Style="{StaticResource ArcadeHeading}"
+                            Text="CONTROLLER SLOTS" />
+                        <TextBlock Style="{StaticResource ArcadeBody}" Text="{Binding SlotsText}" />
+                        <TextBlock
+                            Foreground="{StaticResource ArcadeRed}"
+                            Style="{StaticResource ArcadeBody}"
+                            Text="No free slot: Windows supports at most 4 controllers in total.">
+                            <TextBlock.Visibility>
+                                <Binding Path="SlotsFull">
+                                    <Binding.Converter>
+                                        <BooleanToVisibilityConverter />
+                                    </Binding.Converter>
+                                </Binding>
+                            </TextBlock.Visibility>
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
+            </ContentControl>
+
+            <!-- List actions -->
+            <WrapPanel Grid.Row="4" Margin="0,0,0,14">
+                <Button
+                    Command="{Binding RefreshCommand}"
+                    Content="REFRESH LIST"
+                    Style="{StaticResource ArcadeButton}" />
+                <Button
+                    Command="{Binding ToggleIdentifyCommand}"
+                    Content="{Binding IdentifyButtonText, Converter={StaticResource Upper}}"
+                    Style="{StaticResource ArcadeButton}" />
+                <Button
+                    Command="{Binding StopAllCommand}"
+                    Content="STOP ALL"
+                    Style="{StaticResource ArcadeDangerButton}" />
+            </WrapPanel>
+
+            <!-- Keyboard list -->
+            <Grid Grid.Row="5">
+                <ListBox
+                    Background="Transparent"
+                    BorderThickness="0"
+                    ItemContainerStyle="{StaticResource ArcadeListItem}"
+                    ItemsSource="{Binding Keyboards}"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                    SelectedItem="{Binding Selected}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:KeyboardItem}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Viewbox Width="34" Height="34" Margin="0,0,16,0">
+                                    <Path
+                                        Data="F0 M1,5 H23 V19 H1 Z M4,8 H6.5 V10.5 H4 Z M8.5,8 H11 V10.5 H8.5 Z M13,8 H15.5 V10.5 H13 Z M17.5,8 H20 V10.5 H17.5 Z M6,13.5 H18 V16 H6 Z"
+                                        Fill="{StaticResource ArcadeLime}" />
+                                </Viewbox>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock
+                                        FontSize="22"
+                                        Style="{StaticResource ArcadeHeading}"
+                                        Text="{Binding Title, Converter={StaticResource Upper}}" />
+                                    <TextBlock
+                                        FontSize="12"
+                                        Foreground="{StaticResource ArcadeTextDim}"
+                                        Text="{Binding Subtitle}"
+                                        TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+
+                                <!-- READY / LIVE -->
+                                <Grid Grid.Column="2" Margin="16,0">
+                                    <Border>
+                                        <Border.Style>
+                                            <Style BasedOn="{StaticResource ArcadeTag}" TargetType="Border">
+                                                <Setter Property="Background" Value="{StaticResource ArcadePanelRaised}" />
+                                                <Setter Property="BorderBrush" Value="{StaticResource ArcadeLine}" />
+                                                <Setter Property="BorderThickness" Value="1" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                                        <Setter Property="Background" Value="{StaticResource ArcadeLime}" />
+                                                        <Setter Property="BorderThickness" Value="0" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Ellipse
+                                                Width="8"
+                                                Height="8"
+                                                Margin="0,0,6,0"
+                                                VerticalAlignment="Center"
+                                                Fill="{StaticResource ArcadeBlack}">
+                                                <Ellipse.Style>
+                                                    <Style TargetType="Ellipse">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                <DataTrigger.EnterActions>
+                                                                    <BeginStoryboard x:Name="LiveBlink" Storyboard="{StaticResource ArcadeBlink}" />
+                                                                </DataTrigger.EnterActions>
+                                                                <DataTrigger.ExitActions>
+                                                                    <StopStoryboard BeginStoryboardName="LiveBlink" />
+                                                                </DataTrigger.ExitActions>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Ellipse.Style>
+                                            </Ellipse>
+                                            <TextBlock FontSize="13">
+                                                <TextBlock.Style>
+                                                    <Style BasedOn="{StaticResource ArcadeHeading}" TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="READY" />
+                                                        <Setter Property="Foreground" Value="{StaticResource ArcadeTextDim}" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                                                <Setter Property="Text" Value="LIVE" />
+                                                                <Setter Property="Foreground" Value="{StaticResource ArcadeBlack}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+
+                                <Button
+                                    Grid.Column="3"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding DataContext.EditMappingCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                    CommandParameter="{Binding}"
+                                    Content="EDIT MAPPING"
+                                    Style="{StaticResource ArcadeButton}" />
+
+                                <Grid Grid.Column="4" VerticalAlignment="Center">
+                                    <Button
+                                        MinWidth="104"
+                                        Margin="0,0,4,4"
+                                        Command="{Binding DataContext.StartCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                        CommandParameter="{Binding}"
+                                        Content="START">
+                                        <Button.Style>
+                                            <Style BasedOn="{StaticResource ArcadePrimaryButton}" TargetType="Button">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                    <Button
+                                        MinWidth="104"
+                                        Margin="0,0,4,4"
+                                        Command="{Binding DataContext.StopCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                        CommandParameter="{Binding}"
+                                        Content="STOP">
+                                        <Button.Style>
+                                            <Style BasedOn="{StaticResource ArcadeDangerButton}" TargetType="Button">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </Grid>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontSize="20"
+                    Foreground="{StaticResource ArcadeTextDim}"
+                    Text="NO KEYBOARDS FOUND - PLUG ONE IN AND HIT REFRESH">
+                    <TextBlock.Style>
+                        <Style BasedOn="{StaticResource ArcadeHeading}" TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasNoKeyboards}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+
+            <!-- Messages -->
+            <StackPanel Grid.Row="6" Margin="0,8,0,0">
+                <TextBlock
+                    FontSize="22"
+                    Foreground="{StaticResource ArcadeCyan}"
+                    Text="PRESS ANY KEY ON THE KEYBOARD YOU WANT">
+                    <TextBlock.Style>
+                        <Style BasedOn="{StaticResource ArcadeHeading}" TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsIdentifying}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <DataTrigger.EnterActions>
+                                        <BeginStoryboard x:Name="PressAnyKeyBlink" Storyboard="{StaticResource ArcadeBlink}" />
+                                    </DataTrigger.EnterActions>
+                                    <DataTrigger.ExitActions>
+                                        <StopStoryboard BeginStoryboardName="PressAnyKeyBlink" />
+                                    </DataTrigger.ExitActions>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBlock
+                    Foreground="{StaticResource ArcadeCyan}"
+                    Style="{StaticResource ArcadeBody}"
+                    Text="{Binding ListProblem}" />
+                <TextBlock Text="{Binding StatusMessage}">
+                    <TextBlock.Style>
+                        <Style BasedOn="{StaticResource ArcadeBody}" TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{StaticResource ArcadeLime}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding StatusIsError}" Value="True">
+                                    <Setter Property="Foreground" Value="{StaticResource ArcadeRed}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Page>

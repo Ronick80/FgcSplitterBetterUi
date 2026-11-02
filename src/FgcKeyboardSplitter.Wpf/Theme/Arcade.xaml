@@ -1,0 +1,291 @@
+<!--
+    Arcade theme sketch: black and lime, hard offset shadows, slanted shapes and a halftone backdrop.
+    Only plain WPF controls are styled here, so it does not depend on WPF-UI.
+-->
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:theme="clr-namespace:FgcKeyboardSplitter.Theme">
+
+    <!-- Palette -->
+    <Color x:Key="ArcadeBlackColor">#0A0C07</Color>
+    <Color x:Key="ArcadeLimeColor">#CDF24B</Color>
+    <SolidColorBrush x:Key="ArcadeBlack" Color="{StaticResource ArcadeBlackColor}" />
+    <SolidColorBrush x:Key="ArcadePanel" Color="#12160D" />
+    <SolidColorBrush x:Key="ArcadePanelRaised" Color="#1B2113" />
+    <SolidColorBrush x:Key="ArcadeLine" Color="#2E3722" />
+    <SolidColorBrush x:Key="ArcadeLime" Color="{StaticResource ArcadeLimeColor}" />
+    <SolidColorBrush x:Key="ArcadeLimeHot" Color="#E4FF7A" />
+    <SolidColorBrush x:Key="ArcadeLimeDim" Color="#5F7A16" />
+    <SolidColorBrush x:Key="ArcadeCyan" Color="#38D6FF" />
+    <SolidColorBrush x:Key="ArcadeRed" Color="#FF3D4A" />
+    <SolidColorBrush x:Key="ArcadeRedHot" Color="#FF6B75" />
+    <SolidColorBrush x:Key="ArcadeText" Color="#F3F7EA" />
+    <SolidColorBrush x:Key="ArcadeTextDim" Color="#97A385" />
+    <SolidColorBrush x:Key="ArcadeShadow" Color="#000000" />
+
+    <FontFamily x:Key="ArcadeFont">Bahnschrift, Segoe UI</FontFamily>
+
+    <theme:UpperCaseConverter x:Key="Upper" />
+
+    <!-- Comic halftone dots, tiled -->
+    <DrawingBrush
+        x:Key="ArcadeHalftone"
+        TileMode="Tile"
+        Viewbox="0,0,9,9"
+        ViewboxUnits="Absolute"
+        Viewport="0,0,9,9"
+        ViewportUnits="Absolute">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Brush="Transparent">
+                    <GeometryDrawing.Geometry>
+                        <RectangleGeometry Rect="0,0,9,9" />
+                    </GeometryDrawing.Geometry>
+                </GeometryDrawing>
+                <GeometryDrawing Brush="{StaticResource ArcadeLime}">
+                    <GeometryDrawing.Geometry>
+                        <EllipseGeometry Center="4.5,4.5" RadiusX="1.2" RadiusY="1.2" />
+                    </GeometryDrawing.Geometry>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+
+    <!-- Hazard stripes for warnings -->
+    <LinearGradientBrush
+        x:Key="ArcadeHazard"
+        MappingMode="Absolute"
+        SpreadMethod="Repeat"
+        StartPoint="0,0"
+        EndPoint="10,10">
+        <GradientStop Offset="0" Color="{StaticResource ArcadeLimeColor}" />
+        <GradientStop Offset="0.5" Color="{StaticResource ArcadeLimeColor}" />
+        <GradientStop Offset="0.5" Color="{StaticResource ArcadeBlackColor}" />
+        <GradientStop Offset="1" Color="{StaticResource ArcadeBlackColor}" />
+    </LinearGradientBrush>
+
+    <!-- Text -->
+    <Style x:Key="ArcadeHeading" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource ArcadeFont}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontStretch" Value="Condensed" />
+        <Setter Property="Foreground" Value="{StaticResource ArcadeText}" />
+    </Style>
+
+    <Style x:Key="ArcadeBody" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource ArcadeFont}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Foreground" Value="{StaticResource ArcadeTextDim}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <!-- Slanted tag, for labels like PLAYER SELECT, LIVE and READY -->
+    <Style x:Key="ArcadeTag" TargetType="Border">
+        <Setter Property="Padding" Value="10,2" />
+        <Setter Property="Background" Value="{StaticResource ArcadeLime}" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <SkewTransform AngleX="-14" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Buttons: slanted face over a hard black shadow; pressing pushes the face onto the shadow. -->
+    <Style x:Key="ArcadeButton" TargetType="Button">
+        <Setter Property="FontFamily" Value="{StaticResource ArcadeFont}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontStretch" Value="Condensed" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="Padding" Value="18,7" />
+        <Setter Property="Margin" Value="0,0,12,4" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Background" Value="{StaticResource ArcadeBlack}" />
+        <Setter Property="Foreground" Value="{StaticResource ArcadeLime}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ArcadeLime}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <Border
+                            x:Name="Shadow"
+                            Margin="4,4,-4,-4"
+                            Background="{StaticResource ArcadeShadow}"
+                            RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <SkewTransform AngleX="-14" />
+                            </Border.RenderTransform>
+                        </Border>
+                        <Border
+                            x:Name="Face"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <SkewTransform AngleX="-14" />
+                            </Border.RenderTransform>
+                        </Border>
+                        <ContentPresenter
+                            x:Name="Content"
+                            Margin="{TemplateBinding Padding}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Face" Property="Margin" Value="3,3,-3,-3" />
+                            <Setter TargetName="Content" Property="RenderTransform">
+                                <Setter.Value>
+                                    <TranslateTransform X="3" Y="3" />
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Face" Property="BorderBrush" Value="{StaticResource ArcadeText}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Shadow" Property="Opacity" Value="0.35" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource ArcadeLime}" />
+                <Setter Property="Foreground" Value="{StaticResource ArcadeBlack}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="{StaticResource ArcadePanelRaised}" />
+                <Setter Property="BorderBrush" Value="{StaticResource ArcadeLine}" />
+                <Setter Property="Foreground" Value="{StaticResource ArcadeTextDim}" />
+                <Setter Property="Cursor" Value="Arrow" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style
+        x:Key="ArcadePrimaryButton"
+        BasedOn="{StaticResource ArcadeButton}"
+        TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource ArcadeLime}" />
+        <Setter Property="Foreground" Value="{StaticResource ArcadeBlack}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ArcadeBlack}" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource ArcadeLimeHot}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="{StaticResource ArcadePanelRaised}" />
+                <Setter Property="BorderBrush" Value="{StaticResource ArcadeLine}" />
+                <Setter Property="Foreground" Value="{StaticResource ArcadeTextDim}" />
+                <Setter Property="Cursor" Value="Arrow" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style
+        x:Key="ArcadeDangerButton"
+        BasedOn="{StaticResource ArcadeButton}"
+        TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource ArcadeRed}" />
+        <Setter Property="Foreground" Value="{StaticResource ArcadeText}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ArcadeBlack}" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource ArcadeRedHot}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="{StaticResource ArcadePanelRaised}" />
+                <Setter Property="BorderBrush" Value="{StaticResource ArcadeLine}" />
+                <Setter Property="Foreground" Value="{StaticResource ArcadeTextDim}" />
+                <Setter Property="Cursor" Value="Arrow" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Panel with a lime frame, a hard shadow and a notched corner -->
+    <Style x:Key="ArcadeCard" TargetType="ContentControl">
+        <Setter Property="Padding" Value="20,16" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContentControl">
+                    <Grid>
+                        <Border Margin="6,6,-6,-6" Background="{StaticResource ArcadeShadow}" />
+                        <Border
+                            Background="{StaticResource ArcadePanel}"
+                            BorderBrush="{StaticResource ArcadeLime}"
+                            BorderThickness="2">
+                            <ContentPresenter Margin="{TemplateBinding Padding}" />
+                        </Border>
+                        <Polygon
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            Fill="{StaticResource ArcadeLime}"
+                            Points="0,0 18,0 0,18" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- List rows: dark slab, lime accent bar when selected -->
+    <Style x:Key="ArcadeListItem" TargetType="ListBoxItem">
+        <Setter Property="Margin" Value="0,0,8,12" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Grid>
+                        <Border Margin="5,5,-5,-5" Background="{StaticResource ArcadeShadow}" />
+                        <Border
+                            x:Name="Slab"
+                            Background="{StaticResource ArcadePanel}"
+                            BorderBrush="{StaticResource ArcadeLine}"
+                            BorderThickness="2">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border
+                                    x:Name="Accent"
+                                    Width="8"
+                                    Background="{StaticResource ArcadeLine}" />
+                                <ContentPresenter Grid.Column="1" Margin="16,12" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Slab" Property="Background" Value="{StaticResource ArcadePanelRaised}" />
+                            <Setter TargetName="Accent" Property="Background" Value="{StaticResource ArcadeLimeDim}" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Slab" Property="BorderBrush" Value="{StaticResource ArcadeLime}" />
+                            <Setter TargetName="Accent" Property="Background" Value="{StaticResource ArcadeLime}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Slow arcade blink, for "press any key" and LIVE markers -->
+    <Storyboard x:Key="ArcadeBlink" RepeatBehavior="Forever">
+        <DoubleAnimation
+            AutoReverse="True"
+            Storyboard.TargetProperty="Opacity"
+            From="1"
+            To="0.2"
+            Duration="0:0:0.55" />
+    </Storyboard>
+</ResourceDictionary>
