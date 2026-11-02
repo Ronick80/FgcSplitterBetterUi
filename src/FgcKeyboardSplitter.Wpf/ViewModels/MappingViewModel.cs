@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows;
 using System.Windows.Data;
+using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Fgc.Interop;
@@ -10,22 +12,40 @@ namespace FgcKeyboardSplitter.ViewModels;
 
 public sealed partial class MappingRow(XboxInput input, string label, string group) : ObservableObject
 {
+    private readonly DiagramSpot _spot = GamepadLayout.Spots[input];
+
     public XboxInput Input { get; } = input;
 
     public string Label { get; } = label;
 
     public string Group { get; } = group;
 
-    public double X => GamepadLayout.Spots[Input].X;
+    public Geometry Shape => _spot.Shape;
 
-    public double Y => GamepadLayout.Spots[Input].Y;
+    public bool Outlined => _spot.Outlined;
 
-    public string ShortLabel => GamepadLayout.Spots[Input].ShortLabel;
+    public Geometry? Glyph => _spot.Glyph;
 
-    public ChipAccent Accent => GamepadLayout.Spots[Input].Accent;
+    public string? Letter => _spot.Letter;
+
+    public double LetterLeft => _spot.Center.X - GamepadLayout.LetterBox / 2;
+
+    public double LetterTop => _spot.Center.Y - GamepadLayout.LetterBox / 2;
+
+    public double ChipLeft => GamepadLayout.ChipBounds(_spot).Left;
+
+    public double ChipTop => GamepadLayout.ChipBounds(_spot).Top;
+
+    public double ChipWidth => GamepadLayout.ChipBounds(_spot).Width;
+
+    public PointCollection LeaderPoints { get; } = Frozen([GamepadLayout.LeaderStart(GamepadLayout.Spots[input]), GamepadLayout.Spots[input].Anchor]);
+
+    /// <summary>The pointer is over this input's drawing or its key label; both light up together.</summary>
+    [ObservableProperty]
+    private bool _isHot;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(KeyName), nameof(ButtonText), nameof(ChipText))]
+    [NotifyPropertyChangedFor(nameof(KeyName), nameof(ButtonText), nameof(ChipText), nameof(IsBound))]
     private ushort _keyCode;
 
     [ObservableProperty]
@@ -36,12 +56,21 @@ public sealed partial class MappingRow(XboxInput input, string label, string gro
     [ObservableProperty]
     private bool _isShared;
 
+    public bool IsBound => KeyCode != Fgc.Interop.KeyCode.Unbound;
+
     public string KeyName => KeyNames.GetName(KeyCode);
 
     public string ButtonText => IsBinding ? "Press a key..." : KeyName;
 
     /// <summary>Shorter than <see cref="ButtonText"/> so it fits on the controller drawing.</summary>
     public string ChipText => IsBinding ? "Press key" : KeyName;
+
+    private static PointCollection Frozen(Point[] points)
+    {
+        var collection = new PointCollection(points);
+        collection.Freeze();
+        return collection;
+    }
 }
 
 public sealed partial class MappingViewModel : ObservableObject

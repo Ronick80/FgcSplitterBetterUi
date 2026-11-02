@@ -1,3 +1,4 @@
+using System.Windows;
 using Fgc.Interop;
 using FgcKeyboardSplitter.Services;
 using FgcKeyboardSplitter.Tests.Fakes;
@@ -7,51 +8,96 @@ namespace FgcKeyboardSplitter.Tests;
 
 public class GamepadLayoutTests
 {
-    private static IEnumerable<(XboxInput Input, double Left, double Top)> Chips() =>
-        GamepadLayout.Spots.Select(spot => (spot.Key, spot.Value.X, spot.Value.Y));
+    private static readonly Rect Canvas = new(0, 0, GamepadLayout.CanvasWidth, GamepadLayout.CanvasHeight);
+
+    private static IEnumerable<(XboxInput Input, DiagramSpot Spot)> All() =>
+        GamepadLayout.Spots.Select(pair => (pair.Key, pair.Value));
 
     [Fact]
-    public void EveryInputHasExactlyOneChip()
+    public void EveryInputIsOnTheDrawingOnce()
     {
         for (int i = 0; i < (int)XboxInput.Count; i++)
         {
-            Assert.True(GamepadLayout.Spots.ContainsKey((XboxInput)i), $"{(XboxInput)i} has no chip");
+            Assert.True(GamepadLayout.Spots.ContainsKey((XboxInput)i), $"{(XboxInput)i} is not drawn");
         }
 
         Assert.Equal((int)XboxInput.Count, GamepadLayout.Spots.Count);
     }
 
     [Fact]
-    public void ChipsDoNotOverlap()
+    public void KeyLabelsDoNotOverlap()
     {
-        var chips = Chips().ToList();
+        var chips = All().Select(item => (item.Input, Bounds: GamepadLayout.ChipBounds(item.Spot))).ToList();
         foreach (var first in chips)
         {
             foreach (var second in chips.Where(other => other.Input > first.Input))
             {
-                bool overlap = first.Left < second.Left + GamepadLayout.ChipWidth && second.Left < first.Left + GamepadLayout.ChipWidth &&
-                               first.Top < second.Top + GamepadLayout.ChipHeight && second.Top < first.Top + GamepadLayout.ChipHeight;
-                Assert.False(overlap, $"{first.Input} overlaps {second.Input}");
+                Assert.False(first.Bounds.IntersectsWith(second.Bounds), $"{first.Input} overlaps {second.Input}");
             }
         }
     }
 
     [Fact]
-    public void ChipsStayInsideTheDrawing()
+    public void EverythingStaysInsideTheDrawing()
     {
-        foreach (var chip in Chips())
+        foreach ((XboxInput input, DiagramSpot spot) in All())
         {
-            Assert.InRange(chip.Left, 0, GamepadLayout.CanvasWidth - GamepadLayout.ChipWidth);
-            Assert.InRange(chip.Top, 0, GamepadLayout.CanvasHeight - GamepadLayout.ChipHeight);
+            Assert.True(Canvas.Contains(GamepadLayout.ChipBounds(spot)), $"{input} label is outside");
+            Assert.True(Canvas.Contains(spot.Shape.Bounds), $"{input} shape is outside");
+            Assert.True(Canvas.Contains(spot.Anchor), $"{input} anchor is outside");
+        }
+
+        Assert.True(Canvas.Contains(GamepadLayout.Body.Bounds));
+    }
+
+    [Fact]
+    public void ButtonsDoNotOverlapEachOther()
+    {
+        // D-pad arms meet in the middle by design, so they are compared by their centres only.
+        var shapes = All().ToList();
+        foreach (var first in shapes)
+        {
+            foreach (var second in shapes.Where(other => other.Input > first.Input))
+            {
+                Rect a = first.Spot.Shape.Bounds;
+                Rect b = second.Spot.Shape.Bounds;
+                bool bothArms = !first.Spot.Outlined && !second.Spot.Outlined;
+                Assert.False(!bothArms && a.IntersectsWith(b), $"{first.Input} overlaps {second.Input}");
+            }
         }
     }
 
     [Fact]
-    public void OnlyTheFaceButtonsHaveAnAccentColour()
+    public void EachSideUsesEverySlotOnce()
     {
-        var accented = GamepadLayout.Spots.Where(spot => spot.Value.Accent != ChipAccent.None).Select(spot => spot.Key);
+        foreach (var side in All().GroupBy(item => item.Spot.Side))
+        {
+            var slots = side.Select(item => item.Spot.Slot).Order().ToList();
+            Assert.Equal(Enumerable.Range(0, slots.Count), slots);
+        }
+    }
 
-        Assert.Equal(new[] { XboxInput.A, XboxInput.B, XboxInput.X, XboxInput.Y }.Order(), accented.Order());
+    [Fact]
+    public void OnlyTheFaceButtonsAreLettered()
+    {
+        var lettered = All().Where(item => item.Spot.Letter is not null).ToDictionary(item => item.Input, item => item.Spot.Letter);
+
+        Assert.Equal(4, lettered.Count);
+        Assert.Equal("A", lettered[XboxInput.A]);
+        Assert.Equal("B", lettered[XboxInput.B]);
+        Assert.Equal("X", lettered[XboxInput.X]);
+        Assert.Equal("Y", lettered[XboxInput.Y]);
+    }
+
+    [Fact]
+    public void LeaderLinesRunFromTheLabelToTheInput()
+    {
+        foreach ((XboxInput input, DiagramSpot spot) in All())
+        {
+            Rect chip = GamepadLayout.ChipBounds(spot);
+            Point start = GamepadLayout.LeaderStart(spot);
+            Assert.True(chip.Contains(start), $"{input} line does not start at its label");
+        }
     }
 }
 

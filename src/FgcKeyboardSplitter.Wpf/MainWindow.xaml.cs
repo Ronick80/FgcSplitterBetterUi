@@ -56,7 +56,7 @@ public partial class MainWindow : FluentWindow, INavigator
         Loaded += (_, _) => Navigate(typeof(KeyboardsPage));
     }
 
-    public ContentDialogHost DialogHost => RootDialogHost;
+    public DialogOverlay DialogOverlay => Dialogs;
 
     public void ShowDrivers() => Navigate(typeof(DriversPage));
 

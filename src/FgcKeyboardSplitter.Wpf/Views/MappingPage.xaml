@@ -2,331 +2,248 @@
     x:Class="FgcKeyboardSplitter.Views.MappingPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:views="clr-namespace:FgcKeyboardSplitter.Views"
     xmlns:vm="clr-namespace:FgcKeyboardSplitter.ViewModels"
-    Title="Mapping"
-    Foreground="{DynamicResource TextFillColorPrimaryBrush}">
-    <Grid Margin="28,20,28,24">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+    Title="Mapping">
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="Visible" />
+    </Page.Resources>
 
-        <StackPanel Grid.Row="0">
-            <ui:TextBlock FontTypography="Title" Text="Mapping" />
-            <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
-                <StackPanel.Style>
-                    <Style TargetType="StackPanel">
-                        <Setter Property="Visibility" Value="Collapsed" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding HasKeyboard}" Value="True">
-                                <Setter Property="Visibility" Value="Visible" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </StackPanel.Style>
-                <ui:TextBlock FontTypography="BodyStrong" Text="{Binding Keyboard.Title}" />
-                <Border
-                    Margin="12,0,0,0"
-                    Style="{StaticResource StatusPill}"
-                    Tag="{Binding Keyboard.StatusKind}">
-                    <ui:TextBlock FontTypography="Caption" Text="{Binding Keyboard.StatusText}" />
-                </Border>
-            </StackPanel>
-        </StackPanel>
-
-        <!-- Nothing selected -->
-        <ui:TextBlock
-            Grid.Row="1"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-            Text="Select a keyboard on the Keyboards page to edit its mapping.">
-            <ui:TextBlock.Style>
-                <Style TargetType="ui:TextBlock">
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding HasKeyboard}" Value="True">
-                            <Setter Property="Visibility" Value="Collapsed" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </ui:TextBlock.Style>
-        </ui:TextBlock>
-
-        <Grid Grid.Row="1" Margin="0,16,0,0">
-            <Grid.Style>
-                <Style TargetType="Grid">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding HasKeyboard}" Value="True">
-                            <Setter Property="Visibility" Value="Visible" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Grid.Style>
+    <ContentControl Style="{StaticResource ArcadePage}">
+        <Grid Margin="32,26,32,20">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <!-- Profile -->
-            <ui:Card Grid.Row="0">
-                <StackPanel>
-                    <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
-                        <ui:TextBlock FontTypography="BodyStrong" Text="Profile" />
-                        <Border
-                            Margin="12,0,0,0"
-                            Style="{StaticResource StatusPill}"
-                            Tag="{x:Static vm:StatusKind.Warning}">
-                            <Border.Visibility>
-                                <Binding Path="IsDirty">
-                                    <Binding.Converter>
-                                        <BooleanToVisibilityConverter />
-                                    </Binding.Converter>
-                                </Binding>
-                            </Border.Visibility>
-                            <ui:TextBlock FontTypography="Caption" Text="Unsaved changes" />
-                        </Border>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <ComboBox
-                            MinWidth="240"
-                            Margin="0,0,12,0"
-                            VerticalAlignment="Center"
-                            ItemsSource="{Binding ProfileNames}"
-                            SelectedItem="{Binding SelectedProfile}" />
-                        <ui:Button
-                            Margin="0,0,8,0"
-                            Appearance="Primary"
-                            Command="{Binding SaveCommand}"
-                            Content="Save"
-                            Icon="{ui:SymbolIcon Save24}" />
-                        <ui:Button
-                            Margin="0,0,8,0"
-                            Command="{Binding SaveAsCommand}"
-                            Content="Save as..." />
-                        <ui:Button
-                            Margin="0,0,8,0"
-                            Command="{Binding RenameCommand}"
-                            Content="Rename..." />
-                        <ui:Button Command="{Binding DeleteCommand}" Content="Delete..." />
-                    </StackPanel>
-                    <ui:TextBlock
-                        Margin="0,10,0,0"
-                        Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                        Text="{Binding Message}"
-                        TextWrapping="Wrap">
-                        <ui:TextBlock.Visibility>
-                            <Binding Path="HasMessage">
-                                <Binding.Converter>
-                                    <BooleanToVisibilityConverter />
-                                </Binding.Converter>
-                            </Binding>
-                        </ui:TextBlock.Visibility>
-                    </ui:TextBlock>
+            <!-- Header -->
+            <StackPanel Grid.Row="0">
+                <ContentControl
+                    Content="MAPPING"
+                    Style="{StaticResource ArcadeHeader}"
+                    Tag="BUTTON CONFIG" />
+                <StackPanel
+                    Margin="0,2,0,0"
+                    Orientation="Horizontal"
+                    Visibility="{Binding HasKeyboard, Converter={StaticResource Visible}}">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="24"
+                        Foreground="{StaticResource ArcadeText}"
+                        Style="{StaticResource ArcadeHeading}"
+                        Text="{Binding Keyboard.Title, Converter={StaticResource Upper}}" />
+                    <Border
+                        Margin="14,0,0,0"
+                        Style="{StaticResource ArcadeStatusTag}"
+                        Tag="{Binding Keyboard.StatusKind}">
+                        <TextBlock
+                            FontSize="14"
+                            Foreground="{Binding (TextElement.Foreground), RelativeSource={RelativeSource AncestorType=Border}}"
+                            Style="{StaticResource ArcadeHeading}"
+                            Text="{Binding Keyboard.StatusText, Converter={StaticResource Upper}}" />
+                    </Border>
                 </StackPanel>
-            </ui:Card>
+            </StackPanel>
 
-            <!-- Hint and reset -->
-            <Grid Grid.Row="1" Margin="0,14,0,6">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <ui:TextBlock
-                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                    Text="Click a key button, then press the new key; click it again to cancel. Use ... to pick from a list instead; that also works while the keyboard runs, when its keys are hidden from this window. Changes apply immediately."
-                    TextWrapping="Wrap" />
-                <ui:Button
-                    Grid.Column="1"
-                    Margin="16,0,0,0"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetDefaultsCommand}"
-                    Content="Reset to defaults"
-                    Icon="{ui:SymbolIcon ArrowReset24}" />
-            </Grid>
+            <!-- Nothing selected -->
+            <TextBlock
+                Grid.Row="1"
+                Margin="0,40,0,0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                FontSize="24"
+                Foreground="{StaticResource ArcadeTextDim}"
+                Text="SELECT A KEYBOARD ON THE KEYBOARDS PAGE TO EDIT ITS MAPPING"
+                TextAlignment="Center"
+                TextWrapping="Wrap">
+                <TextBlock.Style>
+                    <Style BasedOn="{StaticResource ArcadeHeading}" TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasKeyboard}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
 
-            <!-- Bindings: controller drawing and grouped list -->
-            <TabControl Grid.Row="2">
-                <TabItem Header="Controller">
-                    <Viewbox Margin="0,12,0,0" Stretch="Uniform">
-                        <Canvas Width="850" Height="450">
-                            <Path
-                                Data="M 110,54 C 190,40 280,44 330,48 L 510,48 C 560,44 650,40 730,54 C 790,66 815,160 830,270 C 840,350 840,418 808,434 C 772,448 730,432 714,414 L 126,414 C 110,432 68,448 32,434 C 0,418 0,350 10,270 C 25,160 50,66 110,54 Z"
-                                Fill="{DynamicResource ControlFillColorSecondaryBrush}"
-                                Stroke="{DynamicResource ControlStrokeColorDefaultBrush}"
-                                StrokeThickness="2" />
-                            <ItemsControl
-                                Width="850"
-                                Height="450"
-                                ItemsSource="{Binding Rows}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <Canvas />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemContainerStyle>
-                                    <Style TargetType="ContentPresenter">
-                                        <Setter Property="Canvas.Left" Value="{Binding X}" />
-                                        <Setter Property="Canvas.Top" Value="{Binding Y}" />
-                                    </Style>
-                                </ItemsControl.ItemContainerStyle>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate DataType="{x:Type vm:MappingRow}">
-                                        <Border Width="76" Height="44" CornerRadius="8">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="BorderThickness" Value="1.5" />
-                                                    <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
-                                                    <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsShared}" Value="True">
-                                                            <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCautionBrush}" />
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding IsBinding}" Value="True">
-                                                            <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
-                                                            <Setter Property="BorderThickness" Value="2.5" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <ui:Button
-                                                Padding="2"
-                                                HorizontalAlignment="Stretch"
-                                                VerticalAlignment="Stretch"
-                                                HorizontalContentAlignment="Center"
-                                                Appearance="Transparent"
-                                                Command="{Binding DataContext.ToggleBindCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                CommandParameter="{Binding}"
-                                                Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                ToolTip="{Binding Label}">
-                                                <ui:Button.ContextMenu>
-                                                    <ContextMenu>
-                                                        <MenuItem
-                                                            Command="{Binding PlacementTarget.Tag.PickKeyCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                                            CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                                            Header="Pick a key from a list..." />
-                                                        <MenuItem
-                                                            Command="{Binding PlacementTarget.Tag.ClearKeyCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                                            CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                                            Header="Clear" />
-                                                    </ContextMenu>
-                                                </ui:Button.ContextMenu>
-                                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                                                        <Ellipse
-                                                            Width="9"
-                                                            Height="9"
-                                                            Margin="0,0,4,0"
-                                                            Tag="{Binding Accent}">
-                                                            <Ellipse.Style>
-                                                                <Style TargetType="Ellipse">
-                                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                                    <Style.Triggers>
-                                                                        <Trigger Property="Tag" Value="{x:Static vm:ChipAccent.A}">
-                                                                            <Setter Property="Visibility" Value="Visible" />
-                                                                            <Setter Property="Fill" Value="#6DB84A" />
-                                                                        </Trigger>
-                                                                        <Trigger Property="Tag" Value="{x:Static vm:ChipAccent.B}">
-                                                                            <Setter Property="Visibility" Value="Visible" />
-                                                                            <Setter Property="Fill" Value="#E5533D" />
-                                                                        </Trigger>
-                                                                        <Trigger Property="Tag" Value="{x:Static vm:ChipAccent.X}">
-                                                                            <Setter Property="Visibility" Value="Visible" />
-                                                                            <Setter Property="Fill" Value="#3A8EE6" />
-                                                                        </Trigger>
-                                                                        <Trigger Property="Tag" Value="{x:Static vm:ChipAccent.Y}">
-                                                                            <Setter Property="Visibility" Value="Visible" />
-                                                                            <Setter Property="Fill" Value="#F2C230" />
-                                                                        </Trigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </Ellipse.Style>
-                                                        </Ellipse>
-                                                        <ui:TextBlock
-                                                            FontSize="11"
-                                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                                            Text="{Binding ShortLabel}" />
-                                                    </StackPanel>
-                                                    <ui:TextBlock
-                                                        MaxWidth="68"
-                                                        HorizontalAlignment="Center"
-                                                        FontSize="13"
-                                                        FontWeight="SemiBold"
-                                                        Text="{Binding ChipText}"
-                                                        TextTrimming="CharacterEllipsis" />
-                                                </StackPanel>
-                                            </ui:Button>
-                                        </Border>
+            <ScrollViewer
+                Grid.Row="1"
+                Margin="0,16,0,0"
+                VerticalScrollBarVisibility="Auto"
+                Visibility="{Binding HasKeyboard, Converter={StaticResource Visible}}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Profile -->
+                <ContentControl Grid.Row="0" Margin="0,0,6,14" Style="{StaticResource ArcadeCard}">
+                    <StackPanel>
+                        <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                            <TextBlock
+                                FontSize="22"
+                                Foreground="{StaticResource ArcadeLime}"
+                                Style="{StaticResource ArcadeHeading}"
+                                Text="PROFILE" />
+                            <Border
+                                Margin="14,0,0,0"
+                                Style="{StaticResource ArcadeStatusTag}"
+                                Tag="{x:Static vm:StatusKind.Warning}"
+                                Visibility="{Binding IsDirty, Converter={StaticResource Visible}}">
+                                <TextBlock
+                                    FontSize="14"
+                                    Foreground="{StaticResource ArcadeBlack}"
+                                    Style="{StaticResource ArcadeHeading}"
+                                    Text="UNSAVED CHANGES" />
+                            </Border>
+                        </StackPanel>
+                        <WrapPanel>
+                            <ComboBox
+                                MinWidth="260"
+                                Margin="0,0,18,6"
+                                VerticalAlignment="Center"
+                                ItemsSource="{Binding ProfileNames}"
+                                SelectedItem="{Binding SelectedProfile}"
+                                Tag="NO PROFILE" />
+                            <Button
+                                Command="{Binding SaveCommand}"
+                                Content="SAVE"
+                                Style="{StaticResource ArcadePrimaryButton}" />
+                            <Button
+                                Command="{Binding SaveAsCommand}"
+                                Content="SAVE AS"
+                                Style="{StaticResource ArcadeButton}" />
+                            <Button
+                                Command="{Binding RenameCommand}"
+                                Content="RENAME"
+                                Style="{StaticResource ArcadeButton}" />
+                            <Button
+                                Command="{Binding DeleteCommand}"
+                                Content="DELETE"
+                                Style="{StaticResource ArcadeDangerButton}" />
+                        </WrapPanel>
+                        <TextBlock
+                            Margin="0,8,0,0"
+                            Foreground="{StaticResource ArcadeRed}"
+                            Style="{StaticResource ArcadeBody}"
+                            Text="{Binding Message}"
+                            Visibility="{Binding HasMessage, Converter={StaticResource Visible}}" />
+                    </StackPanel>
+                </ContentControl>
+
+                <!-- View switch, hint and reset -->
+                <Grid Grid.Row="1" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                        <RadioButton
+                            x:Name="ControllerView"
+                            AutomationProperties.Name="Controller view"
+                            Content="CONTROLLER"
+                            GroupName="MappingView"
+                            IsChecked="True"
+                            Style="{StaticResource ArcadeTab}" />
+                        <RadioButton
+                            x:Name="ListViewTab"
+                            AutomationProperties.Name="List view"
+                            Content="LIST"
+                            GroupName="MappingView"
+                            Style="{StaticResource ArcadeTab}" />
+                    </StackPanel>
+                    <TextBlock
+                        Grid.Column="1"
+                        Margin="12,0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource ArcadeBody}"
+                        Text="Click a button or a key label, then press the new key; click again to cancel. Right-click to pick from a list or clear. Picking also works while the keyboard runs. Changes apply immediately." />
+                    <Button
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        Command="{Binding ResetDefaultsCommand}"
+                        Content="RESET TO DEFAULTS"
+                        Style="{StaticResource ArcadeButton}" />
+                </Grid>
+
+                <!-- Controller: as wide as the page; the page scrolls when it is taller than the window -->
+                <views:GamepadDiagram
+                    Grid.Row="2"
+                    MaxWidth="1400"
+                    Margin="0,8,6,0"
+                    Visibility="{Binding IsChecked, ElementName=ControllerView, Converter={StaticResource Visible}}" />
+
+                <!-- List -->
+                <ItemsControl
+                    Grid.Row="2"
+                    Margin="0,8,0,0"
+                    ItemsSource="{Binding RowsView}"
+                    Visibility="{Binding IsChecked, ElementName=ListViewTab, Converter={StaticResource Visible}}">
+                        <ItemsControl.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.HeaderTemplate>
+                                    <DataTemplate>
+                                        <TextBlock
+                                            Margin="0,18,0,6"
+                                            FontSize="20"
+                                            Foreground="{StaticResource ArcadeLime}"
+                                            Style="{StaticResource ArcadeHeading}"
+                                            Text="{Binding Name, Converter={StaticResource Upper}}" />
                                     </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </Canvas>
-                    </Viewbox>
-                </TabItem>
-                <TabItem Header="List">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding RowsView}">
-                    <ItemsControl.GroupStyle>
-                        <GroupStyle>
-                            <GroupStyle.HeaderTemplate>
-                                <DataTemplate>
-                                    <ui:TextBlock
-                                        Margin="0,16,0,4"
-                                        FontTypography="BodyStrong"
-                                        Text="{Binding Name}" />
-                                </DataTemplate>
-                            </GroupStyle.HeaderTemplate>
-                        </GroupStyle>
-                    </ItemsControl.GroupStyle>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="{x:Type vm:MappingRow}">
-                            <Grid Margin="0,3">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="200" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <ui:TextBlock VerticalAlignment="Center" Text="{Binding Label}" />
-                                <ui:Button
-                                    Grid.Column="1"
-                                    Width="180"
-                                    Command="{Binding DataContext.ToggleBindCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                    CommandParameter="{Binding}"
-                                    Content="{Binding ButtonText}" />
-                                <ui:Button
-                                    Grid.Column="2"
-                                    Margin="6,0,0,0"
-                                    Command="{Binding DataContext.PickKeyCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                    CommandParameter="{Binding}"
-                                    Content="..."
-                                    ToolTip="Pick a key from a list" />
-                                <ui:SymbolIcon
-                                    Grid.Column="3"
-                                    Margin="10,0,0,0"
-                                    Foreground="{DynamicResource SystemFillColorCautionBrush}"
-                                    Symbol="Info24"
-                                    ToolTip="This key is also bound to another input.">
-                                    <ui:SymbolIcon.Style>
-                                        <Style TargetType="ui:SymbolIcon">
-                                            <Setter Property="Visibility" Value="Collapsed" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsShared}" Value="True">
-                                                    <Setter Property="Visibility" Value="Visible" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </ui:SymbolIcon.Style>
-                                </ui:SymbolIcon>
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                                </GroupStyle.HeaderTemplate>
+                            </GroupStyle>
+                        </ItemsControl.GroupStyle>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:MappingRow}">
+                                <Grid Margin="0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="220" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        FontSize="17"
+                                        Foreground="{StaticResource ArcadeText}"
+                                        Style="{StaticResource ArcadeBody}"
+                                        Text="{Binding Label}" />
+                                    <Button
+                                        Grid.Column="1"
+                                        Width="200"
+                                        Command="{Binding DataContext.ToggleBindCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                        CommandParameter="{Binding}"
+                                        Content="{Binding ButtonText, Converter={StaticResource Upper}}"
+                                        Style="{StaticResource ArcadeButton}" />
+                                    <Button
+                                        Grid.Column="2"
+                                        Command="{Binding DataContext.PickKeyCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                        CommandParameter="{Binding}"
+                                        Content="..."
+                                        Style="{StaticResource ArcadeButton}"
+                                        ToolTip="Pick a key from a list" />
+                                    <Border
+                                        Grid.Column="3"
+                                        Style="{StaticResource ArcadeStatusTag}"
+                                        Tag="{x:Static vm:StatusKind.Warning}"
+                                        ToolTip="This key is also bound to another input."
+                                        Visibility="{Binding IsShared, Converter={StaticResource Visible}}">
+                                        <TextBlock
+                                            FontSize="13"
+                                            Foreground="{StaticResource ArcadeBlack}"
+                                            Style="{StaticResource ArcadeHeading}"
+                                            Text="SHARED KEY" />
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+            </Grid>
             </ScrollViewer>
-                </TabItem>
-            </TabControl>
         </Grid>
-    </Grid>
+    </ContentControl>
 </Page>

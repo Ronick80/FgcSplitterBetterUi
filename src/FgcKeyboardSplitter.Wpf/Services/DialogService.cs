@@ -1,10 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Fgc.Interop;
-using Wpf.Ui;
-using Wpf.Ui.Controls;
-using Wpf.Ui.Extensions;
-using TextBox = System.Windows.Controls.TextBox;
+using FgcKeyboardSplitter.Views;
 
 namespace FgcKeyboardSplitter.Services;
 
@@ -13,64 +11,37 @@ public interface IDialogService
     /// <summary>Asks for a line of text. Null when cancelled. A non-null error is shown under the box.</summary>
     Task<string?> PromptTextAsync(string title, string label, string initial, string? error = null);
 
+    /// <summary>Asks before something destructive; the confirm button is red.</summary>
     Task<bool> ConfirmAsync(string title, string message, string confirmText);
 
     /// <summary>Lets the user pick a key from the list. Null when cancelled; <see cref="KeyCode.Unbound"/> for "(none)".</summary>
     Task<ushort?> PickKeyAsync(string title, ushort current);
 }
 
-public sealed class DialogService : IDialogService
+public sealed class DialogService(DialogOverlay overlay) : IDialogService
 {
-    private readonly ContentDialogService _service = new();
     private IReadOnlyList<KeyChoice>? _choices;
-
-    public void SetHost(ContentDialogHost host) => _service.SetDialogHost(host);
 
     public async Task<string?> PromptTextAsync(string title, string label, string initial, string? error = null)
     {
-        var input = new TextBox { Text = initial, MinWidth = 320, MaxLength = 63 };
-        input.Loaded += (_, _) =>
-        {
-            input.Focus();
-            input.SelectAll();
-        };
+        var input = new TextBox { Text = initial, MinWidth = 360, MaxLength = 63 };
+        input.GotKeyboardFocus += (_, _) => input.SelectAll();
 
         var content = new StackPanel();
-        content.Children.Add(new System.Windows.Controls.TextBlock { Text = label, Margin = new Thickness(0, 0, 0, 6) });
+        content.Children.Add(Body(label, "ArcadeTextDim"));
         content.Children.Add(input);
         if (!string.IsNullOrEmpty(error))
         {
-            content.Children.Add(new System.Windows.Controls.TextBlock
-            {
-                Text = error,
-                Margin = new Thickness(0, 8, 0, 0),
-                TextWrapping = TextWrapping.Wrap,
-                MaxWidth = 380,
-                Foreground = (System.Windows.Media.Brush)Application.Current.FindResource("SystemFillColorCriticalBrush"),
-            });
+            TextBlock problem = Body(error, "ArcadeRed");
+            problem.Margin = new Thickness(0, 10, 0, 0);
+            content.Children.Add(problem);
         }
 
-        ContentDialogResult result = await _service.ShowSimpleDialogAsync(new SimpleContentDialogCreateOptions
-        {
-            Title = title,
-            Content = content,
-            PrimaryButtonText = "OK",
-            CloseButtonText = "Cancel",
-        });
-        return result == ContentDialogResult.Primary ? input.Text : null;
+        return await overlay.ShowAsync(title, content, "OK", "Cancel", danger: false, focus: input) ? input.Text : null;
     }
 
-    public async Task<bool> ConfirmAsync(string title, string message, string confirmText)
-    {
-        ContentDialogResult result = await _service.ShowSimpleDialogAsync(new SimpleContentDialogCreateOptions
-        {
-            Title = title,
-            Content = new System.Windows.Controls.TextBlock { Text = message, TextWrapping = TextWrapping.Wrap, MaxWidth = 380 },
-            PrimaryButtonText = confirmText,
-            CloseButtonText = "Cancel",
-        });
-        return result == ContentDialogResult.Primary;
-    }
+    public Task<bool> ConfirmAsync(string title, string message, string confirmText) =>
+        overlay.ShowAsync(title, Body(message, "ArcadeText"), confirmText, "Cancel", danger: true);
 
     public async Task<ushort?> PickKeyAsync(string title, ushort current)
     {
@@ -80,7 +51,9 @@ public sealed class DialogService : IDialogService
             ItemsSource = _choices,
             DisplayMemberPath = nameof(KeyChoice.Name),
             Height = 360,
-            MinWidth = 280,
+            MinWidth = 320,
+            Style = (Style)Application.Current.FindResource("ArcadePickList"),
+            ItemContainerStyle = (Style)Application.Current.FindResource("ArcadePickItem"),
             SelectedItem = _choices.FirstOrDefault(choice => choice.Code == current),
         };
         list.Loaded += (_, _) =>
@@ -90,16 +63,27 @@ public sealed class DialogService : IDialogService
                 list.ScrollIntoView(list.SelectedItem);
             }
         };
-
-        ContentDialogResult result = await _service.ShowSimpleDialogAsync(new SimpleContentDialogCreateOptions
+        list.MouseDoubleClick += (_, e) =>
         {
-            Title = title,
-            Content = list,
-            PrimaryButtonText = "Use this key",
-            CloseButtonText = "Cancel",
-        });
-        return result == ContentDialogResult.Primary && list.SelectedItem is KeyChoice choice ? choice.Code : null;
+            if (list.SelectedItem is not null && e.ChangedButton == MouseButton.Left)
+            {
+                overlay.Accept();
+            }
+        };
+
+        bool chosen = await overlay.ShowAsync(title, list, "Use this key", "Cancel", danger: false, focus: list);
+        return chosen && list.SelectedItem is KeyChoice choice ? choice.Code : null;
     }
+
+    private static TextBlock Body(string text, string brushKey) => new()
+    {
+        Text = text,
+        Margin = new Thickness(0, 0, 0, 8),
+        MaxWidth = 520,
+        HorizontalAlignment = HorizontalAlignment.Left,
+        Style = (Style)Application.Current.FindResource("ArcadeBody"),
+        Foreground = (System.Windows.Media.Brush)Application.Current.FindResource(brushKey),
+    };
 
     private static IReadOnlyList<KeyChoice> BuildChoices()
     {

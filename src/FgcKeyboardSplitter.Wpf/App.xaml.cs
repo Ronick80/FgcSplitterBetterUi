@@ -44,8 +44,7 @@ public partial class App : Application
         var selection = new KeyboardSelection();
         var capture = new KeyCaptureService();
         capture.Attach(window);
-        var dialogs = new DialogService();
-        dialogs.SetHost(window.DialogHost);
+        var dialogs = new DialogService(window.DialogOverlay);
 
         var keyboardsViewModel = new KeyboardsViewModel(_engine, window, selection);
         var mappingViewModel = new MappingViewModel(_engine, selection, capture, dialogs);
