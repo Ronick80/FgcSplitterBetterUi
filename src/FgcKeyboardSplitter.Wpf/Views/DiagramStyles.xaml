@@ -1,0 +1,241 @@
+<!-- Styles shared by the controller and arcade stick drawings. Their DataContext is the MappingViewModel; each
+     input is a MappingRow. -->
+<ResourceDictionary
+    x:Class="FgcKeyboardSplitter.Views.DiagramStyles"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SolidColorBrush x:Key="PadBodyFill" Color="#0D1009" />
+    <SolidColorBrush x:Key="PadDim" Color="#5E6854" />
+    <!-- Lines from labels to controls: bright enough to follow against the dark page. -->
+    <SolidColorBrush x:Key="PadLine" Color="#8A9879" />
+    <SolidColorBrush x:Key="PadGroupFill" Color="#0E1209" />
+
+    <!-- Right-click menu for both the drawing and the key labels -->
+    <ContextMenu x:Key="PadMenu" x:Shared="False">
+        <MenuItem
+            Command="{Binding PlacementTarget.Tag.PickKeyCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+            CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+            Header="PICK A KEY FROM A LIST" />
+        <MenuItem
+            Command="{Binding PlacementTarget.Tag.ClearKeyCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+            CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+            Header="CLEAR" />
+    </ContextMenu>
+
+    <!-- Anything that starts a binding when clicked; hovering it lights up the input everywhere. -->
+    <Style x:Key="PadHotspot" TargetType="Button">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Command" Value="{Binding DataContext.ToggleBindCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+        <Setter Property="CommandParameter" Value="{Binding}" />
+        <Setter Property="Tag" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+        <Setter Property="ContextMenu" Value="{StaticResource PadMenu}" />
+        <Setter Property="ToolTip" Value="{Binding Label}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <ContentPresenter />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <EventSetter Event="MouseEnter" Handler="OnHotspotEnter" />
+        <EventSetter Event="MouseLeave" Handler="OnHotspotLeave" />
+        <Style.Triggers>
+            <!-- Disabled while the keyboard runs: nothing to click. -->
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Cursor" Value="Arrow" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="PadShape" TargetType="Path">
+        <Setter Property="Fill" Value="Transparent" />
+        <Setter Property="Stroke" Value="{StaticResource ArcadeText}" />
+        <Setter Property="StrokeThickness" Value="3" />
+        <Setter Property="StrokeLineJoin" Value="Round" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Outlined}" Value="False">
+                <Setter Property="Stroke" Value="{x:Null}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsHot}" Value="True">
+                <Setter Property="Fill" Value="{StaticResource ArcadeLime}" />
+            </DataTrigger>
+            <!-- Lit while the running keyboard holds a key bound to this input. -->
+            <DataTrigger Binding="{Binding IsHeld}" Value="True">
+                <Setter Property="Fill" Value="{StaticResource ArcadeLime}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsBinding}" Value="True">
+                <Setter Property="Fill" Value="{StaticResource ArcadeCyan}" />
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard x:Name="ShapeBlink" Storyboard="{StaticResource ArcadeBlink}" />
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <StopStoryboard BeginStoryboardName="ShapeBlink" />
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="PadGlyph" TargetType="Path">
+        <Setter Property="Stroke" Value="{StaticResource ArcadeText}" />
+        <Setter Property="StrokeThickness" Value="2.5" />
+        <Setter Property="StrokeStartLineCap" Value="Round" />
+        <Setter Property="StrokeEndLineCap" Value="Round" />
+        <Setter Property="StrokeLineJoin" Value="Round" />
+        <Setter Property="IsHitTestVisible" Value="False" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsHot}" Value="True">
+                <Setter Property="Stroke" Value="{StaticResource ArcadeBlack}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsHeld}" Value="True">
+                <Setter Property="Stroke" Value="{StaticResource ArcadeBlack}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsBinding}" Value="True">
+                <Setter Property="Stroke" Value="{StaticResource ArcadeBlack}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="PadLetter" BasedOn="{StaticResource ArcadeHeading}" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="IsHitTestVisible" Value="False" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsHot}" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource ArcadeBlack}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsHeld}" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource ArcadeBlack}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsBinding}" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource ArcadeBlack}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="PadLeader" TargetType="Polyline">
+        <Setter Property="Stroke" Value="{StaticResource PadLine}" />
+        <Setter Property="StrokeThickness" Value="2" />
+        <Setter Property="IsHitTestVisible" Value="False" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsShared}" Value="True">
+                <Setter Property="Stroke" Value="#7A5A12" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsHot}" Value="True">
+                <Setter Property="Stroke" Value="{StaticResource ArcadeLime}" />
+                <Setter Property="StrokeThickness" Value="3" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsHeld}" Value="True">
+                <Setter Property="Stroke" Value="{StaticResource ArcadeLime}" />
+                <Setter Property="StrokeThickness" Value="3" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsBinding}" Value="True">
+                <Setter Property="Stroke" Value="{StaticResource ArcadeCyan}" />
+                <Setter Property="StrokeThickness" Value="3" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ChipPlate" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource ArcadePanel}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ArcadeLine}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <SkewTransform AngleX="-14" />
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsShared}" Value="True">
+                <Setter Property="BorderBrush" Value="{StaticResource ArcadeAmber}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsHot}" Value="True">
+                <Setter Property="BorderBrush" Value="{StaticResource ArcadeLime}" />
+                <Setter Property="Background" Value="{StaticResource ArcadePanelRaised}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsHeld}" Value="True">
+                <Setter Property="BorderBrush" Value="{StaticResource ArcadeLime}" />
+                <Setter Property="Background" Value="{StaticResource ArcadePanelRaised}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsBinding}" Value="True">
+                <Setter Property="Background" Value="{StaticResource ArcadeCyan}" />
+                <Setter Property="BorderBrush" Value="{StaticResource ArcadeBlack}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ChipText" BasedOn="{StaticResource ArcadeHeading}" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="19" />
+        <Setter Property="Margin" Value="10,0" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsBound}" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource ArcadeTextDim}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsHot}" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource ArcadeLime}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsHeld}" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource ArcadeLime}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsBinding}" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource ArcadeBlack}" />
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard x:Name="ChipBlink" Storyboard="{StaticResource ArcadeBlink}" />
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <StopStoryboard BeginStoryboardName="ChipBlink" />
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <ItemsPanelTemplate x:Key="CanvasPanel">
+        <Canvas />
+    </ItemsPanelTemplate>
+    <!-- Arcade stick: the key name printed inside a round button, shrunk to fit long names. -->
+    <Style x:Key="PadKeyText" BasedOn="{StaticResource ArcadeHeading}" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="32" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="IsHitTestVisible" Value="False" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsBound}" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource ArcadeTextDim}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsHot}" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource ArcadeBlack}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsHeld}" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource ArcadeBlack}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsBinding}" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource ArcadeBlack}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Arcade stick: the small Xbox input name above the key name inside a round button. -->
+    <Style x:Key="PadButtonLabel" BasedOn="{StaticResource ArcadeHeading}" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="Foreground" Value="{StaticResource ArcadeTextDim}" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="IsHitTestVisible" Value="False" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsHot}" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource ArcadeBlack}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsHeld}" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource ArcadeBlack}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsBinding}" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource ArcadeBlack}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

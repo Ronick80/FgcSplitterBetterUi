@@ -42,6 +42,51 @@
                             Style="{StaticResource ArcadeHeading}"
                             Text="{Binding Keyboard.StatusText, Converter={StaticResource Upper}}" />
                     </Border>
+
+                    <!-- Start and stop right here, with the same checks as the Keyboards page -->
+                    <Button
+                        MinWidth="110"
+                        Margin="18,0,0,0"
+                        VerticalAlignment="Center"
+                        Command="{Binding Sessions.StartCommand}"
+                        CommandParameter="{Binding Keyboard}"
+                        Content="START">
+                        <Button.Style>
+                            <Style BasedOn="{StaticResource ArcadePrimaryButton}" TargetType="Button">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsTesting}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button
+                        MinWidth="110"
+                        Margin="18,0,0,0"
+                        VerticalAlignment="Center"
+                        Command="{Binding Sessions.StopCommand}"
+                        CommandParameter="{Binding Keyboard}"
+                        Content="STOP">
+                        <Button.Style>
+                            <Style BasedOn="{StaticResource ArcadeDangerButton}" TargetType="Button">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsTesting}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <TextBlock
+                        Margin="14,0,0,0"
+                        VerticalAlignment="Center"
+                        Foreground="{StaticResource ArcadeRed}"
+                        Style="{StaticResource ArcadeBody}"
+                        Text="{Binding Sessions.StatusMessage}"
+                        TextWrapping="Wrap"
+                        Visibility="{Binding Sessions.StatusIsError, Converter={StaticResource Visible}}" />
                 </StackPanel>
             </StackPanel>
 
@@ -152,7 +197,8 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                    <!-- Indented so the slanted first tab is not clipped at the page edge. -->
+                    <StackPanel Margin="8,0,0,0" VerticalAlignment="Center" Orientation="Horizontal">
                         <RadioButton
                             x:Name="ControllerView"
                             AutomationProperties.Name="Controller view"
@@ -161,18 +207,31 @@
                             IsChecked="True"
                             Style="{StaticResource ArcadeTab}" />
                         <RadioButton
+                            x:Name="ArcadeView"
+                            AutomationProperties.Name="Arcade stick view"
+                            Content="ARCADE STICK"
+                            GroupName="MappingView"
+                            Style="{StaticResource ArcadeTab}" />
+                        <RadioButton
                             x:Name="ListViewTab"
                             AutomationProperties.Name="List view"
                             Content="LIST"
                             GroupName="MappingView"
                             Style="{StaticResource ArcadeTab}" />
                     </StackPanel>
-                    <TextBlock
-                        Grid.Column="1"
-                        Margin="12,0"
-                        VerticalAlignment="Center"
-                        Style="{StaticResource ArcadeBody}"
-                        Text="Click a button or a key label, then press the new key; click again to cancel. Right-click to pick from a list or clear. Picking also works while the keyboard runs. Changes apply immediately." />
+                    <TextBlock Grid.Column="1" Margin="12,0" VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style BasedOn="{StaticResource ArcadeBody}" TargetType="TextBlock">
+                                <Setter Property="Text" Value="Click a button or a key label, then press the new key; click again to cancel. Right-click to pick from a list or clear. Changes apply immediately." />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsTesting}" Value="True">
+                                        <Setter Property="Text" Value="Testing: press keys on this keyboard and the buttons they press light up. Stop the keyboard to change single keys; switching profiles still works." />
+                                        <Setter Property="Foreground" Value="{StaticResource ArcadeLime}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                     <Button
                         Grid.Column="2"
                         VerticalAlignment="Center"
@@ -187,6 +246,13 @@
                     MaxWidth="1400"
                     Margin="0,8,6,0"
                     Visibility="{Binding IsChecked, ElementName=ControllerView, Converter={StaticResource Visible}}" />
+
+                <!-- Arcade stick: the same inputs minus the analog sticks -->
+                <views:ArcadeStickDiagram
+                    Grid.Row="2"
+                    MaxWidth="1400"
+                    Margin="0,8,6,0"
+                    Visibility="{Binding IsChecked, ElementName=ArcadeView, Converter={StaticResource Visible}}" />
 
                 <!-- List -->
                 <ItemsControl

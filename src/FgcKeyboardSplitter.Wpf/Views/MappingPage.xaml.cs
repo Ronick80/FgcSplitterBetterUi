@@ -10,7 +10,12 @@ public partial class MappingPage : Page
         DataContext = viewModel;
         InitializeComponent();
 
-        // A binding left open would keep swallowing keys after the user navigates away.
-        Unloaded += (_, _) => viewModel.CancelBinding();
+        Loaded += (_, _) => viewModel.SetPageVisible(true);
+        Unloaded += (_, _) =>
+        {
+            // A binding left open would keep swallowing keys after the user navigates away.
+            viewModel.CancelBinding();
+            viewModel.SetPageVisible(false);
+        };
     }
 }

@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Fgc.Interop;
@@ -32,17 +33,27 @@ public sealed partial class MappingRow(XboxInput input, string label, string gro
 
     public double LetterTop => _spot.Center.Y - GamepadLayout.LetterBox / 2;
 
-    public double ChipLeft => GamepadLayout.ChipBounds(_spot).Left;
+    public double ChipLeft => _spot.Chip.Left;
 
-    public double ChipTop => GamepadLayout.ChipBounds(_spot).Top;
+    public double ChipTop => _spot.Chip.Top;
 
-    public double ChipWidth => GamepadLayout.ChipBounds(_spot).Width;
+    public double ChipWidth => _spot.Chip.Width;
 
-    public PointCollection LeaderPoints { get; } = Frozen([GamepadLayout.LeaderStart(GamepadLayout.Spots[input]), GamepadLayout.Spots[input].Anchor]);
+    /// <summary>The line from the key label to the input; empty for inputs whose group has one line for all of them.</summary>
+    public PointCollection LeaderPoints { get; } = GamepadLayout.Spots[input] is { HasLeader: true } spot
+        ? Frozen([GamepadLayout.LeaderStart(spot), spot.Anchor])
+        : Frozen([]);
+
+    /// <summary>Where this input is on the arcade stick drawing; null for the analog sticks, which it does not have.</summary>
+    public ArcadeSpot? Arcade { get; } = ArcadeStickLayout.Spots.GetValueOrDefault(input);
 
     /// <summary>The pointer is over this input's drawing or its key label; both light up together.</summary>
     [ObservableProperty]
     private bool _isHot;
+
+    /// <summary>The running keyboard is holding a key bound to this input.</summary>
+    [ObservableProperty]
+    private bool _isHeld;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(KeyName), nameof(ButtonText), nameof(ChipText), nameof(IsBound))]
@@ -102,16 +113,24 @@ public sealed partial class MappingViewModel : ObservableObject
     private readonly IKeyCapture _capture;
     private readonly IDialogService _dialogs;
     private readonly Dictionary<string, ProfileState> _states = [];
+    private readonly DispatcherTimer _heldTimer;
     private Mapping _mapping = new();
     private MappingRow? _bindingRow;
+    private KeyboardItem? _watched;
     private bool _syncingProfile;
+    private bool _pageVisible;
 
-    public MappingViewModel(EngineService engine, KeyboardSelection selection, IKeyCapture capture, IDialogService dialogs)
+    public MappingViewModel(EngineService engine, KeyboardSelection selection, IKeyCapture capture, IDialogService dialogs, KeyboardsViewModel sessions)
     {
         _engine = engine;
         _selection = selection;
         _capture = capture;
         _dialogs = dialogs;
+        Sessions = sessions;
+
+        // Only runs while a running keyboard is shown, so the engine is never asked otherwise.
+        _heldTimer = new DispatcherTimer(DispatcherPriority.Render) { Interval = HeldPollInterval };
+        _heldTimer.Tick += (_, _) => PollHeld();
 
         foreach ((string group, XboxInput[] inputs) in Groups)
         {
@@ -121,6 +140,7 @@ public sealed partial class MappingViewModel : ObservableObject
             }
         }
 
+        ArcadeRows = Rows.Where(row => row.Arcade is not null).ToList();
         RowsView = CollectionViewSource.GetDefaultView(Rows);
         RowsView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(MappingRow.Group)));
 
@@ -142,15 +162,33 @@ public sealed partial class MappingViewModel : ObservableObject
         public bool Dirty { get; set; }
     }
 
+    /// <summary>How often the held inputs are read while testing a running keyboard: about once per frame.</summary>
+    public static readonly TimeSpan HeldPollInterval = TimeSpan.FromMilliseconds(16);
+
+    /// <summary>Starts and stops keyboards; shared with the Keyboards page so both show the same state.</summary>
+    public KeyboardsViewModel Sessions { get; }
+
     public ObservableCollection<MappingRow> Rows { get; } = [];
 
     public ICollectionView RowsView { get; }
+
+    /// <summary>The inputs an arcade stick has: everything but the analog sticks.</summary>
+    public IReadOnlyList<MappingRow> ArcadeRows { get; }
 
     public ObservableCollection<string> ProfileNames { get; } = [];
 
     public KeyboardItem? Keyboard => _selection.Selected;
 
     public bool HasKeyboard => Keyboard is not null;
+
+    /// <summary>
+    /// The selected keyboard is running. Its keys go to its virtual controller instead of this window, so keys cannot
+    /// be bound; the drawing lights up the inputs it holds instead.
+    /// </summary>
+    public bool IsTesting => Keyboard?.IsRunning == true;
+
+    /// <summary>Single keys can be changed: a keyboard is selected and it is not running.</summary>
+    public bool CanEditKeys => HasKeyboard && !IsTesting;
 
     public bool HasCurrentProfile => State?.Current.Length > 0;
 
@@ -192,7 +230,14 @@ public sealed partial class MappingViewModel : ObservableObject
         _capture.IsCapturing = false;
     }
 
-    [RelayCommand]
+    /// <summary>Called by the page so the held inputs are only read while they can be seen.</summary>
+    public void SetPageVisible(bool visible)
+    {
+        _pageVisible = visible;
+        UpdateHeldPolling();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanEditKey))]
     private void ToggleBind(MappingRow? row)
     {
         if (row is null)
@@ -210,7 +255,7 @@ public sealed partial class MappingViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanEditKey))]
     private async Task PickKeyAsync(MappingRow? row)
     {
         if (row is null)
@@ -238,7 +283,7 @@ public sealed partial class MappingViewModel : ObservableObject
         Assign(row.Input, KeyCode.Unbound);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanEditKeys))]
     private void ResetDefaults()
     {
         CancelBinding();
@@ -349,7 +394,9 @@ public sealed partial class MappingViewModel : ObservableObject
         NotifyProfileState();
     }
 
-    private bool CanClearKey(MappingRow? row) => row is { KeyCode: not KeyCode.Unbound };
+    private bool CanEditKey(MappingRow? row) => CanEditKeys;
+
+    private bool CanClearKey(MappingRow? row) => CanEditKeys && row is { KeyCode: not KeyCode.Unbound };
 
     private bool CanSave() => CanChangeProfile() && IsDirty;
 
@@ -445,6 +492,7 @@ public sealed partial class MappingViewModel : ObservableObject
         OnPropertyChanged(nameof(Keyboard));
         OnPropertyChanged(nameof(HasKeyboard));
         SaveAsCommand.NotifyCanExecuteChanged();
+        Watch(Keyboard);
 
         if (Keyboard is { } keyboard)
         {
@@ -467,6 +515,77 @@ public sealed partial class MappingViewModel : ObservableObject
         }
 
         NotifyProfileState();
+    }
+
+    // Follows whether the selected keyboard runs, which switches between editing and testing.
+    private void Watch(KeyboardItem? keyboard)
+    {
+        if (_watched is not null)
+        {
+            _watched.PropertyChanged -= OnWatchedChanged;
+        }
+
+        _watched = keyboard;
+        if (_watched is not null)
+        {
+            _watched.PropertyChanged += OnWatchedChanged;
+        }
+
+        OnRunningChanged();
+    }
+
+    private void OnWatchedChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName == nameof(KeyboardItem.IsRunning))
+        {
+            OnRunningChanged();
+        }
+    }
+
+    private void OnRunningChanged()
+    {
+        if (IsTesting)
+        {
+            CancelBinding();
+        }
+
+        OnPropertyChanged(nameof(IsTesting));
+        OnPropertyChanged(nameof(CanEditKeys));
+        ToggleBindCommand.NotifyCanExecuteChanged();
+        PickKeyCommand.NotifyCanExecuteChanged();
+        ClearKeyCommand.NotifyCanExecuteChanged();
+        ResetDefaultsCommand.NotifyCanExecuteChanged();
+        UpdateHeldPolling();
+    }
+
+    private void UpdateHeldPolling()
+    {
+        if (IsTesting && _pageVisible)
+        {
+            _heldTimer.Start();
+            return;
+        }
+
+        _heldTimer.Stop();
+        foreach (MappingRow row in Rows)
+        {
+            row.IsHeld = false;
+        }
+    }
+
+    /// <summary>Lights up the inputs the running keyboard holds right now.</summary>
+    internal void PollHeld()
+    {
+        uint held = 0;
+        if (Keyboard is { } keyboard && _engine.Client.GetHeldInputs(keyboard.HardwareId, out uint inputs) == FgcResult.Ok)
+        {
+            held = inputs;
+        }
+
+        foreach (MappingRow row in Rows)
+        {
+            row.IsHeld = (held & (1u << (int)row.Input)) != 0;
+        }
     }
 
     private void RefreshProfiles()

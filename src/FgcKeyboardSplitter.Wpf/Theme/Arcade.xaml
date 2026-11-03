@@ -28,8 +28,6 @@
     <SolidColorBrush x:Key="ArcadeShadow" Color="#000000" />
 
     <FontFamily x:Key="ArcadeFont">Bahnschrift, Segoe UI</FontFamily>
-    <!-- Chakra Petch: cut corners instead of curves, for the big page titles -->
-    <FontFamily x:Key="ArcadeTitleFont">/FgcKeyboardSplitter;component/Theme/Fonts/#Chakra Petch</FontFamily>
 
     <theme:UpperCaseConverter x:Key="Upper" />
 
@@ -350,22 +348,25 @@
                             <Grid.RenderTransform>
                                 <SkewTransform AngleX="-10" />
                             </Grid.RenderTransform>
+                            <!-- Drop shadow: black, so the lime title stands out instead of competing with it -->
                             <theme:OutlinedText
                                 Margin="6,6,0,0"
-                                Fill="{StaticResource ArcadeCyan}"
-                                FontFamily="{StaticResource ArcadeTitleFont}"
+                                Fill="{StaticResource ArcadeBlack}"
+                                FontFamily="{StaticResource ArcadeFont}"
                                 FontSize="62"
+                                FontStretch="Condensed"
                                 FontWeight="Bold"
                                 Stroke="{StaticResource ArcadeBlack}"
-                                StrokeThickness="4"
+                                StrokeThickness="1.5"
                                 Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" />
                             <theme:OutlinedText
                                 Fill="{StaticResource ArcadeLime}"
-                                FontFamily="{StaticResource ArcadeTitleFont}"
+                                FontFamily="{StaticResource ArcadeFont}"
                                 FontSize="62"
+                                FontStretch="Condensed"
                                 FontWeight="Bold"
                                 Stroke="{StaticResource ArcadeBlack}"
-                                StrokeThickness="4"
+                                StrokeThickness="1.5"
                                 Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" />
                         </Grid>
                     </StackPanel>

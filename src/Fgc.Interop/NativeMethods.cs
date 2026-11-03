@@ -92,6 +92,9 @@ internal static partial class NativeMethods
     [LibraryImport(Dll, EntryPoint = "fgc_profile_get_last_used", StringMarshalling = StringMarshalling.Utf8)]
     internal static partial int ProfileGetLastUsed(FgcContextHandle context, string hardwareId, Span<byte> name, uint nameSize);
 
+    [LibraryImport(Dll, EntryPoint = "fgc_get_held_inputs", StringMarshalling = StringMarshalling.Utf8)]
+    internal static partial int GetHeldInputs(FgcContextHandle context, string hardwareId, out uint inputs);
+
     [LibraryImport(Dll, EntryPoint = "fgc_check_controller_limit")]
     internal static partial int CheckControllerLimit(FgcContextHandle context, uint virtualRequested, ref NativeControllerLimit limit);
 

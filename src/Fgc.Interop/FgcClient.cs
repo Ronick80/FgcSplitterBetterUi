@@ -191,6 +191,17 @@ public sealed class FgcClient : IFgcClient
     }
 
     /// <summary>Counts XInput controllers and this library's virtual pads, plus the pads about to be added.</summary>
+    public FgcResult GetHeldInputs(string hardwareId, out uint inputs)
+    {
+        var result = (FgcResult)NativeMethods.GetHeldInputs(_context, hardwareId, out inputs);
+        if (result != FgcResult.Ok)
+        {
+            inputs = 0;
+        }
+
+        return result;
+    }
+
     public FgcResult CheckControllerLimit(uint virtualRequested, out ControllerLimit limit)
     {
         var native = new NativeControllerLimit { StructSize = Size<NativeControllerLimit>() };

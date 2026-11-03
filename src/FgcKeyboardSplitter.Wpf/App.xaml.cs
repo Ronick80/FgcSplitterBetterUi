@@ -47,7 +47,7 @@ public partial class App : Application
         var dialogs = new DialogService(window.DialogOverlay);
 
         var keyboardsViewModel = new KeyboardsViewModel(_engine, window, selection);
-        var mappingViewModel = new MappingViewModel(_engine, selection, capture, dialogs);
+        var mappingViewModel = new MappingViewModel(_engine, selection, capture, dialogs, keyboardsViewModel);
         var driversViewModel = new DriversViewModel(_engine, $"FGC Keyboard Splitter UI {AppInfo.Version} - engine {FgcClient.EngineVersion}");
         var latencyViewModel = new LatencyViewModel(_engine, keyboardsViewModel);
         window.SetPages(new Dictionary<Type, object>

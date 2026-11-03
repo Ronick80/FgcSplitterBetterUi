@@ -1,0 +1,112 @@
+<UserControl
+    x:Class="FgcKeyboardSplitter.Views.ArcadeStickDiagram"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:FgcKeyboardSplitter.Views"
+    xmlns:vm="clr-namespace:FgcKeyboardSplitter.ViewModels">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <local:DiagramStyles />
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="Visible" />
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Viewbox Stretch="Uniform">
+        <Canvas Width="{x:Static vm:ArcadeStickLayout.CanvasWidth}" Height="{x:Static vm:ArcadeStickLayout.CanvasHeight}">
+            <!-- Case -->
+            <Path
+                Data="{x:Static vm:ArcadeStickLayout.Body}"
+                Fill="{StaticResource PadBodyFill}"
+                Stroke="{StaticResource ArcadeText}"
+                StrokeLineJoin="Round"
+                StrokeThickness="3.5" />
+            <Path
+                Data="{x:Static vm:ArcadeStickLayout.Plate}"
+                Stroke="{StaticResource ArcadeText}"
+                StrokeThickness="2.5" />
+            <Path
+                Data="{x:Static vm:ArcadeStickLayout.FunctionStrip}"
+                Stroke="{StaticResource PadDim}"
+                StrokeThickness="2.5" />
+            <Path
+                Data="{x:Static vm:ArcadeStickLayout.LeverRings}"
+                Stroke="{StaticResource PadDim}"
+                StrokeThickness="2.5" />
+            <Path
+                Data="{x:Static vm:ArcadeStickLayout.LeverBall}"
+                Stroke="{StaticResource ArcadeText}"
+                StrokeThickness="3" />
+
+            <!-- Leader lines from the key labels above the case to Back, Guide and Start -->
+            <ItemsControl ItemsPanel="{StaticResource CanvasPanel}" ItemsSource="{Binding ArcadeRows}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:MappingRow}">
+                        <Polyline Points="{Binding Arcade.Leader}" Style="{StaticResource PadLeader}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- The inputs; the round buttons carry their key name inside -->
+            <ItemsControl ItemsPanel="{StaticResource CanvasPanel}" ItemsSource="{Binding ArcadeRows}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:MappingRow}">
+                        <Button Style="{StaticResource PadHotspot}">
+                            <Canvas>
+                                <Path
+                                    Data="{Binding Arcade.Shape}"
+                                    Stroke="{StaticResource ArcadeText}"
+                                    Style="{StaticResource PadShape}" />
+                                <Path Data="{Binding Arcade.Glyph}" Style="{StaticResource PadGlyph}" />
+                                <Grid
+                                    Canvas.Left="{Binding Arcade.LabelBox.Left}"
+                                    Canvas.Top="{Binding Arcade.LabelBox.Top}"
+                                    Width="{Binding Arcade.LabelBox.Width}"
+                                    Height="{Binding Arcade.LabelBox.Height}"
+                                    Visibility="{Binding Arcade.InShape, Converter={StaticResource Visible}}">
+                                    <TextBlock Style="{StaticResource PadButtonLabel}" Text="{Binding Arcade.Label}" />
+                                </Grid>
+                                <Viewbox
+                                    Canvas.Left="{Binding Arcade.KeyBox.Left}"
+                                    Canvas.Top="{Binding Arcade.KeyBox.Top}"
+                                    Width="{Binding Arcade.KeyBox.Width}"
+                                    Height="{Binding Arcade.KeyBox.Height}"
+                                    StretchDirection="DownOnly"
+                                    Visibility="{Binding Arcade.InShape, Converter={StaticResource Visible}}">
+                                    <TextBlock Style="{StaticResource PadKeyText}" Text="{Binding ChipText, Converter={StaticResource Upper}}" />
+                                </Viewbox>
+                            </Canvas>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Key labels for the lever directions and Back, Guide and Start -->
+            <ItemsControl ItemsPanel="{StaticResource CanvasPanel}" ItemsSource="{Binding ArcadeRows}">
+                <ItemsControl.ItemContainerStyle>
+                    <Style TargetType="ContentPresenter">
+                        <Setter Property="Canvas.Left" Value="{Binding Arcade.KeyBox.Left}" />
+                        <Setter Property="Canvas.Top" Value="{Binding Arcade.KeyBox.Top}" />
+                        <Setter Property="Visibility" Value="{Binding Arcade.OnChip, Converter={StaticResource Visible}}" />
+                    </Style>
+                </ItemsControl.ItemContainerStyle>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:MappingRow}">
+                        <Button Style="{StaticResource PadHotspot}">
+                            <Grid Width="{Binding Arcade.KeyBox.Width}" Height="{Binding Arcade.KeyBox.Height}">
+                                <Border Margin="4,4,-4,-4" Background="{StaticResource ArcadeShadow}">
+                                    <Border.RenderTransform>
+                                        <SkewTransform AngleX="-14" CenterY="18" />
+                                    </Border.RenderTransform>
+                                </Border>
+                                <Border Style="{StaticResource ChipPlate}" />
+                                <TextBlock Style="{StaticResource ChipText}" Text="{Binding ChipText, Converter={StaticResource Upper}}" />
+                            </Grid>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Canvas>
+    </Viewbox>
+</UserControl>
