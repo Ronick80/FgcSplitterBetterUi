@@ -225,6 +225,21 @@ public sealed class FakeFgcClient : IFgcClient
         return FgcResult.NotFound;
     }
 
+    /// <summary>Held inputs per running keyboard, as <see cref="GetHeldInputs"/> reports them.</summary>
+    public Dictionary<string, uint> Held { get; } = [];
+
+    public FgcResult GetHeldInputs(string hardwareId, out uint inputs)
+    {
+        if (!Running.Contains(hardwareId))
+        {
+            inputs = 0;
+            return FgcResult.NotRunning;
+        }
+
+        inputs = Held.GetValueOrDefault(hardwareId);
+        return FgcResult.Ok;
+    }
+
     public FgcResult CheckControllerLimit(uint virtualRequested, out ControllerLimit limit)
     {
         limit = Limit;

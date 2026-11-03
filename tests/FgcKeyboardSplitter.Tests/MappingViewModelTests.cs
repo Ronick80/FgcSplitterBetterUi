@@ -14,12 +14,14 @@ public class MappingViewModelTests
     private readonly FakeDialogService _dialogs = new();
     private readonly KeyboardSelection _selection = new();
     private readonly KeyboardItem _keyboard = new(Id, $"Keyboard 1 - {Id}");
+    private readonly KeyboardsViewModel _keyboards;
     private readonly MappingViewModel _vm;
 
     public MappingViewModelTests()
     {
         var engine = new EngineService(_client);
-        _vm = new MappingViewModel(engine, _selection, _capture, _dialogs);
+        _keyboards = new KeyboardsViewModel(engine, new FakeNavigator(), _selection);
+        _vm = new MappingViewModel(engine, _selection, _capture, _dialogs, _keyboards);
     }
 
     private MappingRow Row(XboxInput input) => _vm.Rows.Single(row => row.Input == input);
@@ -35,6 +37,87 @@ public class MappingViewModelTests
 
     private void AddProfile(string name, ushort keyForA) =>
         _client.SaveProfile(Id, name, MappingWith(keyForA));
+
+    [Fact]
+    public void TheArcadeStickHasEverythingButTheAnalogSticks()
+    {
+        Assert.Equal(17, _vm.ArcadeRows.Count);
+        Assert.DoesNotContain(_vm.ArcadeRows, row => row.Input.ToString().Contains("Stick") && !row.Input.ToString().EndsWith("Click"));
+        Assert.Contains(_vm.ArcadeRows, row => row.Input == XboxInput.LeftStickClick);
+        Assert.Contains(_vm.ArcadeRows, row => row.Input == XboxInput.DpadLeft);
+    }
+
+    [Fact]
+    public void ARunningKeyboardCannotBeEditedAndAnOpenBindingIsCancelled()
+    {
+        Select();
+        _vm.ToggleBindCommand.Execute(Row(XboxInput.A));
+        Assert.True(_capture.IsCapturing);
+
+        _keyboard.IsRunning = true;
+
+        Assert.True(_vm.IsTesting);
+        Assert.False(_vm.CanEditKeys);
+        Assert.False(_capture.IsCapturing);
+        Assert.False(Row(XboxInput.A).IsBinding);
+        Assert.False(_vm.ToggleBindCommand.CanExecute(Row(XboxInput.A)));
+        Assert.False(_vm.PickKeyCommand.CanExecute(Row(XboxInput.A)));
+        Assert.False(_vm.ClearKeyCommand.CanExecute(Row(XboxInput.A)));
+        Assert.False(_vm.ResetDefaultsCommand.CanExecute(null));
+
+        _keyboard.IsRunning = false;
+
+        Assert.False(_vm.IsTesting);
+        Assert.True(_vm.ToggleBindCommand.CanExecute(Row(XboxInput.A)));
+    }
+
+    [Fact]
+    public void HeldInputsLightUpWhileRunningAndGoDarkWhenStopped()
+    {
+        Select();
+        _vm.SetPageVisible(true);
+        _keyboard.IsRunning = true;
+        _client.Running.Add(Id);
+        _client.Held[Id] = (1u << (int)XboxInput.A) | (1u << (int)XboxInput.DpadLeft);
+
+        _vm.PollHeld();
+
+        Assert.True(Row(XboxInput.A).IsHeld);
+        Assert.True(Row(XboxInput.DpadLeft).IsHeld);
+        Assert.False(Row(XboxInput.B).IsHeld);
+
+        _client.Held[Id] = 1u << (int)XboxInput.B;
+        _vm.PollHeld();
+
+        Assert.False(Row(XboxInput.A).IsHeld);
+        Assert.True(Row(XboxInput.B).IsHeld);
+
+        _keyboard.IsRunning = false;
+
+        Assert.All(_vm.Rows, row => Assert.False(row.IsHeld));
+    }
+
+    [Fact]
+    public void LeavingThePageClearsHeldInputs()
+    {
+        Select();
+        _vm.SetPageVisible(true);
+        _keyboard.IsRunning = true;
+        _client.Running.Add(Id);
+        _client.Held[Id] = 1u << (int)XboxInput.X;
+        _vm.PollHeld();
+        Assert.True(Row(XboxInput.X).IsHeld);
+
+        _vm.SetPageVisible(false);
+
+        Assert.False(Row(XboxInput.X).IsHeld);
+    }
+
+    [Fact]
+    public void StartAndStopComeFromTheKeyboardsPage()
+    {
+        Assert.Same(_keyboards, _vm.Sessions);
+    }
 
     private const string BuiltIn = "2XKO Default";
 

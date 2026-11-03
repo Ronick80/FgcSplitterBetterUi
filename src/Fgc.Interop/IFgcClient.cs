@@ -36,6 +36,12 @@ public interface IFgcClient : IDisposable
 
     FgcResult GetLastUsedProfile(string hardwareId, out string name);
 
+    /// <summary>
+    /// The inputs a running keyboard holds right now: bit <c>1 &lt;&lt; (int)input</c> per <see cref="XboxInput"/>.
+    /// <see cref="FgcResult.NotRunning"/> when the keyboard is not running.
+    /// </summary>
+    FgcResult GetHeldInputs(string hardwareId, out uint inputs);
+
     FgcResult CheckControllerLimit(uint virtualRequested, out ControllerLimit limit);
 
     FgcResult Start(string hardwareId);

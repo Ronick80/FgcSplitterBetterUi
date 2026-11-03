@@ -30,6 +30,13 @@ public class EngineTests(EngineFixture engine)
     }
 
     [Fact]
+    public void HeldInputsNeedARunningKeyboard()
+    {
+        Assert.Equal(FgcResult.NotRunning, _client.GetHeldInputs(@"TEST\NO_SUCH_KEYBOARD", out uint inputs));
+        Assert.Equal(0u, inputs);
+    }
+
+    [Fact]
     public void Lists2XkoDefaultFirstAsAReadOnlyProfile()
     {
         Assert.Equal(FgcResult.Ok, _client.GetProfileNames(@"TEST\NO_SUCH_KEYBOARD", out IReadOnlyList<string> names));
