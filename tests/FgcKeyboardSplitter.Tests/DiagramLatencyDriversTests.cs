@@ -68,13 +68,46 @@ public class GamepadLayoutTests
     }
 
     [Fact]
-    public void EachSideUsesEverySlotOnce()
+    public void EveryLabelSitsInAGroupOrTheTopRow()
     {
-        foreach (var side in All().GroupBy(item => item.Spot.Side))
+        Rect body = GamepadLayout.Body.Bounds;
+        foreach ((XboxInput input, DiagramSpot spot) in All())
         {
-            var slots = side.Select(item => item.Spot.Slot).Order().ToList();
-            Assert.Equal(Enumerable.Range(0, slots.Count), slots);
+            bool inGroup = GamepadLayout.Groups.Any(group => group.Bounds.Contains(spot.Chip));
+            bool aboveBody = spot.Chip.Bottom <= body.Top;
+            Assert.True(inGroup || aboveBody, $"{input} label is in no group");
         }
+    }
+
+    [Fact]
+    public void GroupsDoNotOverlapEachOtherOrTheController()
+    {
+        Rect body = GamepadLayout.Body.Bounds;
+        var groups = GamepadLayout.Groups;
+        for (int i = 0; i < groups.Count; i++)
+        {
+            Assert.True(Canvas.Contains(groups[i].Bounds), $"{groups[i].Title} is outside");
+            Assert.False(groups[i].Bounds.IntersectsWith(body), $"{groups[i].Title} covers the controller");
+            for (int j = i + 1; j < groups.Count; j++)
+            {
+                Assert.False(groups[i].Bounds.IntersectsWith(groups[j].Bounds), $"{groups[i].Title} overlaps {groups[j].Title}");
+            }
+        }
+    }
+
+    [Fact]
+    public void OnlyTriggersBumpersAndTheTopRowHaveTheirOwnLines()
+    {
+        var withLines = All().Where(item => item.Spot.HasLeader).Select(item => item.Input).Order().ToList();
+
+        Assert.Equal(
+            new[]
+            {
+                XboxInput.LeftBumper, XboxInput.RightBumper, XboxInput.LeftTrigger, XboxInput.RightTrigger,
+                XboxInput.Start, XboxInput.Back, XboxInput.Guide,
+            }.Order(),
+            withLines);
+        Assert.Equal(4, GamepadLayout.Groups.Count(group => group.HasLeader));
     }
 
     [Fact]

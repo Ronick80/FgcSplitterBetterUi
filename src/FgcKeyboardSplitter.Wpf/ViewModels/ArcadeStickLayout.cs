@@ -25,12 +25,12 @@ public sealed record ArcadeSpot(
 /// <summary>
 /// The arcade stick drawing, seen from above: a lever whose four directions are the d-pad, eight buttons in the usual
 /// curved layout with L3 and R3 below them, and Back, Guide and Start on the top edge. The analog sticks are not on
-/// it. Coordinates are canvas units, the same canvas size as <see cref="GamepadLayout"/>.
+/// it. Coordinates are canvas units.
 /// </summary>
 public static class ArcadeStickLayout
 {
-    public const double CanvasWidth = GamepadLayout.CanvasWidth;
-    public const double CanvasHeight = GamepadLayout.CanvasHeight;
+    public const double CanvasWidth = 1140;
+    public const double CanvasHeight = 600;
 
     private const double ButtonRadius = 44;
     private const double ChipWidth = 110;

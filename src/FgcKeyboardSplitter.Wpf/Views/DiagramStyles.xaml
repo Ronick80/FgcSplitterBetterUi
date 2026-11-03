@@ -6,6 +6,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <SolidColorBrush x:Key="PadBodyFill" Color="#0D1009" />
     <SolidColorBrush x:Key="PadDim" Color="#5E6854" />
+    <!-- Lines from labels to controls: bright enough to follow against the dark page. -->
+    <SolidColorBrush x:Key="PadLine" Color="#8A9879" />
+    <SolidColorBrush x:Key="PadGroupFill" Color="#0E1209" />
 
     <!-- Right-click menu for both the drawing and the key labels -->
     <ContextMenu x:Key="PadMenu" x:Shared="False">
@@ -112,7 +115,7 @@
     </Style>
 
     <Style x:Key="PadLeader" TargetType="Polyline">
-        <Setter Property="Stroke" Value="{StaticResource ArcadeLine}" />
+        <Setter Property="Stroke" Value="{StaticResource PadLine}" />
         <Setter Property="StrokeThickness" Value="2" />
         <Setter Property="IsHitTestVisible" Value="False" />
         <Style.Triggers>

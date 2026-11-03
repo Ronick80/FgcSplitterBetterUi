@@ -197,7 +197,8 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                    <!-- Indented so the slanted first tab is not clipped at the page edge. -->
+                    <StackPanel Margin="8,0,0,0" VerticalAlignment="Center" Orientation="Horizontal">
                         <RadioButton
                             x:Name="ControllerView"
                             AutomationProperties.Name="Controller view"

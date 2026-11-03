@@ -9,6 +9,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <local:DiagramStyles />
             </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="Visible" />
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -34,6 +35,65 @@
                 Data="{x:Static vm:GamepadLayout.StickRings}"
                 Stroke="{StaticResource ArcadeText}"
                 StrokeThickness="3" />
+
+            <!-- Label groups: a titled panel per stick, d-pad, face buttons and trigger/bumper pair -->
+            <ItemsControl ItemsPanel="{StaticResource CanvasPanel}" ItemsSource="{x:Static vm:GamepadLayout.Groups}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:DiagramGroup}">
+                        <Canvas>
+                            <Polyline
+                                Points="{Binding Leader}"
+                                Stroke="{StaticResource PadLine}"
+                                StrokeThickness="2.5" />
+                            <Ellipse
+                                Canvas.Left="{Binding LeaderDot.Left}"
+                                Canvas.Top="{Binding LeaderDot.Top}"
+                                Width="10"
+                                Height="10"
+                                Fill="{StaticResource PadLine}"
+                                Visibility="{Binding HasLeader, Converter={StaticResource Visible}}" />
+                            <Border
+                                Canvas.Left="{Binding Bounds.Left}"
+                                Canvas.Top="{Binding Bounds.Top}"
+                                Width="{Binding Bounds.Width}"
+                                Height="{Binding Bounds.Height}"
+                                Background="{StaticResource PadGroupFill}"
+                                BorderBrush="{StaticResource PadDim}"
+                                BorderThickness="2"
+                                CornerRadius="6">
+                                <TextBlock
+                                    Margin="10,4,0,0"
+                                    VerticalAlignment="Top"
+                                    FontSize="15"
+                                    Foreground="{StaticResource ArcadeTextDim}"
+                                    Style="{StaticResource ArcadeHeading}"
+                                    Text="{Binding Title}" />
+                            </Border>
+                            <ItemsControl ItemsPanel="{StaticResource CanvasPanel}" ItemsSource="{Binding Captions}">
+                                <ItemsControl.ItemContainerStyle>
+                                    <Style TargetType="ContentPresenter">
+                                        <Setter Property="Canvas.Left" Value="{Binding Bounds.Left}" />
+                                        <Setter Property="Canvas.Top" Value="{Binding Bounds.Top}" />
+                                    </Style>
+                                </ItemsControl.ItemContainerStyle>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type vm:GroupCaption}">
+                                        <Grid Width="{Binding Bounds.Width}" Height="{Binding Bounds.Height}">
+                                            <TextBlock
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                FontSize="20"
+                                                Foreground="{StaticResource ArcadeText}"
+                                                Style="{StaticResource ArcadeHeading}"
+                                                Text="{Binding Text}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Canvas>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
             <!-- Leader lines, under everything that lights up -->
             <ItemsControl ItemsPanel="{StaticResource CanvasPanel}" ItemsSource="{Binding Rows}">

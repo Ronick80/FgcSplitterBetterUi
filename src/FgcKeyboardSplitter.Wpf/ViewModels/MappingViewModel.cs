@@ -33,13 +33,16 @@ public sealed partial class MappingRow(XboxInput input, string label, string gro
 
     public double LetterTop => _spot.Center.Y - GamepadLayout.LetterBox / 2;
 
-    public double ChipLeft => GamepadLayout.ChipBounds(_spot).Left;
+    public double ChipLeft => _spot.Chip.Left;
 
-    public double ChipTop => GamepadLayout.ChipBounds(_spot).Top;
+    public double ChipTop => _spot.Chip.Top;
 
-    public double ChipWidth => GamepadLayout.ChipBounds(_spot).Width;
+    public double ChipWidth => _spot.Chip.Width;
 
-    public PointCollection LeaderPoints { get; } = Frozen([GamepadLayout.LeaderStart(GamepadLayout.Spots[input]), GamepadLayout.Spots[input].Anchor]);
+    /// <summary>The line from the key label to the input; empty for inputs whose group has one line for all of them.</summary>
+    public PointCollection LeaderPoints { get; } = GamepadLayout.Spots[input] is { HasLeader: true } spot
+        ? Frozen([GamepadLayout.LeaderStart(spot), spot.Anchor])
+        : Frozen([]);
 
     /// <summary>Where this input is on the arcade stick drawing; null for the analog sticks, which it does not have.</summary>
     public ArcadeSpot? Arcade { get; } = ArcadeStickLayout.Spots.GetValueOrDefault(input);
