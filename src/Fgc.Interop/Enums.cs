@@ -17,6 +17,7 @@ public enum FgcResult
     DeviceBusy = 12,
     BadFormat = 13,
     AlreadyExists = 14,
+    ReadOnly = 15,
 }
 
 public enum InterceptionState

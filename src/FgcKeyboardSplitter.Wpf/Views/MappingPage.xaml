@@ -91,6 +91,17 @@
                             <Border
                                 Margin="14,0,0,0"
                                 Style="{StaticResource ArcadeStatusTag}"
+                                Tag="{x:Static vm:StatusKind.Neutral}"
+                                ToolTip="Built-in profiles cannot be changed. Use Save as to keep a copy under another name."
+                                Visibility="{Binding IsReadOnly, Converter={StaticResource Visible}}">
+                                <TextBlock
+                                    FontSize="14"
+                                    Style="{StaticResource ArcadeHeading}"
+                                    Text="BUILT-IN" />
+                            </Border>
+                            <Border
+                                Margin="14,0,0,0"
+                                Style="{StaticResource ArcadeStatusTag}"
                                 Tag="{x:Static vm:StatusKind.Warning}"
                                 Visibility="{Binding IsDirty, Converter={StaticResource Visible}}">
                                 <TextBlock

@@ -36,6 +36,72 @@ public class MappingViewModelTests
     private void AddProfile(string name, ushort keyForA) =>
         _client.SaveProfile(Id, name, MappingWith(keyForA));
 
+    private const string BuiltIn = "2XKO Default";
+
+    private void AddBuiltInProfile()
+    {
+        if (!_client.Profiles.TryGetValue(Id, out Dictionary<string, Mapping>? profiles))
+        {
+            _client.Profiles[Id] = profiles = new Dictionary<string, Mapping>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        profiles[BuiltIn] = MappingWith(0x34);
+        _client.ReadOnlyProfiles.Add(BuiltIn);
+    }
+
+    [Fact]
+    public void BuiltInProfilesAreListedFirst()
+    {
+        AddProfile("Alpha", 0x30);
+        AddBuiltInProfile();
+        Select();
+
+        Assert.Equal(new[] { BuiltIn, "Alpha" }, _vm.ProfileNames);
+    }
+
+    [Fact]
+    public void ABuiltInProfileCanBeUsedButNotChanged()
+    {
+        AddProfile("Mine", 0x30);
+        _client.LastUsed[Id] = "Mine";
+        AddBuiltInProfile();
+        Select();
+        Assert.False(_vm.IsReadOnly);
+        Assert.True(_vm.RenameCommand.CanExecute(null));
+
+        _vm.SelectedProfile = BuiltIn;
+
+        Assert.Equal(0x34, Row(XboxInput.A).KeyCode);
+        Assert.Equal(BuiltIn, _vm.CurrentProfileText);
+        Assert.True(_vm.IsReadOnly);
+        Assert.False(_vm.RenameCommand.CanExecute(null));
+        Assert.False(_vm.DeleteCommand.CanExecute(null));
+
+        _vm.ToggleBindCommand.Execute(Row(XboxInput.B));
+        _capture.Press(0x2C);
+
+        Assert.True(_vm.IsDirty);
+        Assert.False(_vm.SaveCommand.CanExecute(null));
+        Assert.True(_vm.SaveAsCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task SaveAsRefusesABuiltInName()
+    {
+        AddBuiltInProfile();
+        Select();
+        _dialogs.TextAnswers.Enqueue("2xko default");
+        _dialogs.TextAnswers.Enqueue("My 2XKO");
+
+        await _vm.SaveAsCommand.ExecuteAsync(null);
+
+        Assert.Contains("built-in", _dialogs.Prompts[1].Error);
+        Assert.Empty(_dialogs.Confirmations);
+        Assert.DoesNotContain(_client.Calls, call => call == "SaveProfile:2xko default");
+        Assert.Equal("My 2XKO", _vm.CurrentProfileText);
+        Assert.False(_vm.IsReadOnly);
+    }
+
     [Fact]
     public void ListsAllInputsInGroups()
     {

@@ -132,7 +132,10 @@ public sealed class FgcClient : IFgcClient
         return (FgcResult)NativeMethods.SetMapping(_context, hardwareId, in native);
     }
 
-    /// <summary>Profile names for the keyboard, sorted case-insensitively.</summary>
+    public bool IsReadOnlyProfile(string name) =>
+        (FgcResult)NativeMethods.ProfileIsReadOnly(name, out int readOnly) == FgcResult.Ok && readOnly != 0;
+
+    /// <summary>Profile names for the keyboard: built-in profiles first, then its own sorted case-insensitively.</summary>
     public FgcResult GetProfileNames(string hardwareId, out IReadOnlyList<string> names)
     {
         names = [];

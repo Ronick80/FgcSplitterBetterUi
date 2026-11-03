@@ -68,6 +68,9 @@ internal static partial class NativeMethods
     [LibraryImport(Dll, EntryPoint = "fgc_set_mapping", StringMarshalling = StringMarshalling.Utf8)]
     internal static partial int SetMapping(FgcContextHandle context, string hardwareId, in NativeMapping mapping);
 
+    [LibraryImport(Dll, EntryPoint = "fgc_profile_is_read_only", StringMarshalling = StringMarshalling.Utf8)]
+    internal static partial int ProfileIsReadOnly(string name, out int readOnly);
+
     [LibraryImport(Dll, EntryPoint = "fgc_profile_count", StringMarshalling = StringMarshalling.Utf8)]
     internal static partial int ProfileCount(FgcContextHandle context, string hardwareId, out uint count);
 

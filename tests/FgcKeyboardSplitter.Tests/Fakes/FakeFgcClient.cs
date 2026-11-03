@@ -35,6 +35,9 @@ public sealed class FakeFgcClient : IFgcClient
 
     public Dictionary<string, string> LastUsed { get; } = [];
 
+    /// <summary>Names of built-in profiles; add the profile to <see cref="Profiles"/> too so it can be loaded.</summary>
+    public HashSet<string> ReadOnlyProfiles { get; } = new(StringComparer.OrdinalIgnoreCase);
+
     public FgcResult SetMappingResult { get; set; } = FgcResult.Ok;
 
     public Mapping CreateDefaultMapping()
@@ -104,10 +107,12 @@ public sealed class FakeFgcClient : IFgcClient
     public FgcResult GetProfileNames(string hardwareId, out IReadOnlyList<string> names)
     {
         names = Profiles.TryGetValue(hardwareId, out Dictionary<string, Mapping>? profiles)
-            ? profiles.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase).ToList()
+            ? profiles.Keys.OrderBy(n => !ReadOnlyProfiles.Contains(n)).ThenBy(n => n, StringComparer.OrdinalIgnoreCase).ToList()
             : [];
         return FgcResult.Ok;
     }
+
+    public bool IsReadOnlyProfile(string name) => ReadOnlyProfiles.Contains(name);
 
     public FgcResult LoadProfile(string hardwareId, string name, out Mapping mapping)
     {
@@ -131,6 +136,11 @@ public sealed class FakeFgcClient : IFgcClient
             return FgcResult.InvalidArgument;
         }
 
+        if (ReadOnlyProfiles.Contains(name))
+        {
+            return FgcResult.ReadOnly;
+        }
+
         if (!Profiles.TryGetValue(hardwareId, out Dictionary<string, Mapping>? profiles))
         {
             Profiles[hardwareId] = profiles = new Dictionary<string, Mapping>(StringComparer.OrdinalIgnoreCase);
@@ -147,6 +157,16 @@ public sealed class FakeFgcClient : IFgcClient
         if (!IsValidName(newName))
         {
             return FgcResult.InvalidArgument;
+        }
+
+        if (ReadOnlyProfiles.Contains(oldName))
+        {
+            return FgcResult.ReadOnly;
+        }
+
+        if (ReadOnlyProfiles.Contains(newName))
+        {
+            return FgcResult.AlreadyExists;
         }
 
         if (!TryFindProfile(hardwareId, oldName, out string stored))
@@ -174,6 +194,11 @@ public sealed class FakeFgcClient : IFgcClient
     public FgcResult DeleteProfile(string hardwareId, string name)
     {
         Calls.Add($"DeleteProfile:{name}");
+        if (ReadOnlyProfiles.Contains(name))
+        {
+            return FgcResult.ReadOnly;
+        }
+
         if (!TryFindProfile(hardwareId, name, out string stored))
         {
             return FgcResult.NotFound;

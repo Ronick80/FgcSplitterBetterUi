@@ -23,6 +23,9 @@ public interface IFgcClient : IDisposable
 
     FgcResult GetProfileNames(string hardwareId, out IReadOnlyList<string> names);
 
+    /// <summary>True for a built-in profile, which cannot be saved over, renamed or deleted.</summary>
+    bool IsReadOnlyProfile(string name);
+
     FgcResult LoadProfile(string hardwareId, string name, out Mapping mapping);
 
     FgcResult SaveProfile(string hardwareId, string name, Mapping mapping);

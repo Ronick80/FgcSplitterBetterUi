@@ -20,6 +20,7 @@ public static class FgcErrors
         FgcResult.DeviceBusy => "Keyboard is in use by another program",
         FgcResult.BadFormat => "The file is damaged or from a newer version",
         FgcResult.AlreadyExists => "A profile with that name already exists",
+        FgcResult.ReadOnly => "Built-in profiles cannot be changed. Use Save as to keep a copy under another name",
         _ => "Unknown error",
     };
 

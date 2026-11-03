@@ -156,6 +156,9 @@ public sealed partial class MappingViewModel : ObservableObject
 
     public bool IsDirty => State?.Dirty == true;
 
+    /// <summary>The current profile is built in, so it can be used and copied with Save as but not changed.</summary>
+    public bool IsReadOnly => State is { Current.Length: > 0 } state && _engine.Client.IsReadOnlyProfile(state.Current);
+
     public string CurrentProfileText => State is { Current.Length: > 0 } state ? state.Current : "(no profile)";
 
     [ObservableProperty]
@@ -267,6 +270,12 @@ public sealed partial class MappingViewModel : ObservableObject
         {
             string name = entered.Trim();
             initial = name;
+            if (_engine.Client.IsReadOnlyProfile(name))
+            {
+                error = "That name belongs to a built-in profile. Choose another name.";
+                continue;
+            }
+
             bool replaces = ProfileNames.Any(existing => string.Equals(existing, name, StringComparison.OrdinalIgnoreCase));
             if (replaces && !await _dialogs.ConfirmAsync("Replace profile?", $"A profile named \"{name}\" already exists. Replace it?", "Replace"))
             {
@@ -282,7 +291,7 @@ public sealed partial class MappingViewModel : ObservableObject
         }
     }
 
-    [RelayCommand(CanExecute = nameof(HasCurrentProfile))]
+    [RelayCommand(CanExecute = nameof(CanChangeProfile))]
     private async Task RenameAsync()
     {
         if (Keyboard is not { } keyboard || State is not { } state)
@@ -311,7 +320,7 @@ public sealed partial class MappingViewModel : ObservableObject
         }
     }
 
-    [RelayCommand(CanExecute = nameof(HasCurrentProfile))]
+    [RelayCommand(CanExecute = nameof(CanChangeProfile))]
     private async Task DeleteAsync()
     {
         if (Keyboard is not { } keyboard || State is not { } state)
@@ -342,7 +351,9 @@ public sealed partial class MappingViewModel : ObservableObject
 
     private bool CanClearKey(MappingRow? row) => row is { KeyCode: not KeyCode.Unbound };
 
-    private bool CanSave() => HasCurrentProfile && IsDirty;
+    private bool CanSave() => CanChangeProfile() && IsDirty;
+
+    private bool CanChangeProfile() => HasCurrentProfile && !IsReadOnly;
 
     private void OnKeyPressed(ushort keyCode)
     {
@@ -493,6 +504,7 @@ public sealed partial class MappingViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(HasCurrentProfile));
         OnPropertyChanged(nameof(IsDirty));
+        OnPropertyChanged(nameof(IsReadOnly));
         OnPropertyChanged(nameof(CurrentProfileText));
         SyncSelectedProfile();
         SaveCommand.NotifyCanExecuteChanged();
