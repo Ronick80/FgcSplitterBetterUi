@@ -15,14 +15,16 @@
            Text="FgcCore.dll was not found in $(FgcCoreDir). Run scripts\Get-FgcCore.ps1, or set FgcCoreDir / FGC_CORE_DIR to a folder that has it." />
   </Target>
 
-  <!-- Items are added inside a target so they see the files the fetch just created. -->
+  <!-- Items are added inside a target so they see the files the fetch just created.
+       They copy Always, not PreserveNewest: switching FgcCoreDir between a local core build and the pinned release
+       can make the wanted DLL older than the one already in the output, which PreserveNewest would silently keep. -->
   <Target Name="AddFgcCoreFiles" BeforeTargets="AssignTargetPaths" DependsOnTargets="FetchFgcCore">
     <ItemGroup>
-      <None Include="$(FgcCoreDir)\FgcCore.dll" Link="FgcCore.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
-      <None Condition="'$(FgcCoreCopyExtras)' == 'true'" Include="$(FgcCoreDir)\FgcDriverSetup.exe" Link="FgcDriverSetup.exe" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+      <None Include="$(FgcCoreDir)\FgcCore.dll" Link="FgcCore.dll" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" ExcludeFromSingleFile="true" />
+      <None Condition="'$(FgcCoreCopyExtras)' == 'true'" Include="$(FgcCoreDir)\FgcDriverSetup.exe" Link="FgcDriverSetup.exe" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" ExcludeFromSingleFile="true" />
       <FgcDriverFile Condition="'$(FgcCoreCopyExtras)' == 'true'" Include="$(FgcCoreDir)\drivers\**" />
       <!-- Metadata is qualified with the item type; unqualified %(Filename) would batch over the other None items. -->
-      <None Include="@(FgcDriverFile)" Link="drivers\%(FgcDriverFile.RecursiveDir)%(FgcDriverFile.Filename)%(FgcDriverFile.Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+      <None Include="@(FgcDriverFile)" Link="drivers\%(FgcDriverFile.RecursiveDir)%(FgcDriverFile.Filename)%(FgcDriverFile.Extension)" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" ExcludeFromSingleFile="true" />
     </ItemGroup>
   </Target>
 </Project>
