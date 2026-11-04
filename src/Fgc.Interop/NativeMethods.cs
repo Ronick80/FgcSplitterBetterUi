@@ -50,14 +50,14 @@ internal static partial class NativeMethods
     [LibraryImport(Dll, EntryPoint = "fgc_get_keyboard")]
     internal static partial int GetKeyboard(FgcContextHandle context, uint index, ref NativeKeyboardInfo info);
 
-    [LibraryImport(Dll, EntryPoint = "fgc_identify_begin")]
-    internal static partial int IdentifyBegin(FgcContextHandle context);
+    [LibraryImport(Dll, EntryPoint = "fgc_watch_begin")]
+    internal static partial int WatchBegin(FgcContextHandle context);
 
-    [LibraryImport(Dll, EntryPoint = "fgc_identify_cancel")]
-    internal static partial int IdentifyCancel(FgcContextHandle context);
+    [LibraryImport(Dll, EntryPoint = "fgc_watch_end")]
+    internal static partial int WatchEnd(FgcContextHandle context);
 
-    [LibraryImport(Dll, EntryPoint = "fgc_identify_poll")]
-    internal static partial int IdentifyPoll(FgcContextHandle context, out int index);
+    [LibraryImport(Dll, EntryPoint = "fgc_watch_poll")]
+    internal static partial int WatchPoll(FgcContextHandle context, ref NativeKeyboardInfo info, out int pressed);
 
     [LibraryImport(Dll, EntryPoint = "fgc_get_default_mapping")]
     internal static partial int GetDefaultMapping(ref NativeMapping mapping);
@@ -94,6 +94,9 @@ internal static partial class NativeMethods
 
     [LibraryImport(Dll, EntryPoint = "fgc_get_held_inputs", StringMarshalling = StringMarshalling.Utf8)]
     internal static partial int GetHeldInputs(FgcContextHandle context, string hardwareId, out uint inputs);
+
+    [LibraryImport(Dll, EntryPoint = "fgc_get_key_press_count", StringMarshalling = StringMarshalling.Utf8)]
+    internal static partial int GetKeyPressCount(FgcContextHandle context, string hardwareId, out uint count);
 
     [LibraryImport(Dll, EntryPoint = "fgc_check_controller_limit")]
     internal static partial int CheckControllerLimit(FgcContextHandle context, uint virtualRequested, ref NativeControllerLimit limit);

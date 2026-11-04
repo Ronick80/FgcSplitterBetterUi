@@ -13,7 +13,7 @@ public class StructLayoutTests
     public void Mapping() => Assert.Equal(56, Unsafe.SizeOf<NativeMapping>());
 
     [Fact]
-    public void KeyboardInfo() => Assert.Equal(388, Unsafe.SizeOf<NativeKeyboardInfo>());
+    public void KeyboardInfo() => Assert.Equal(772, Unsafe.SizeOf<NativeKeyboardInfo>());
 
     [Fact]
     public void ControllerLimit() => Assert.Equal(20, Unsafe.SizeOf<NativeControllerLimit>());

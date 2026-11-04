@@ -17,20 +17,45 @@ public enum SlotKind
     Mine,
 }
 
-public sealed partial class KeyboardItem(string hardwareId, string displayName) : ObservableObject
+/// <summary>One physical keyboard, driven through the interface it joined with (<see cref="HardwareId"/>).</summary>
+public sealed partial class KeyboardItem(string hardwareId, string title, string deviceKey = "", string productName = "") : ObservableObject
 {
+    private DateTime _flashUntil;
+
+    /// <summary>The keyboard interface sessions and profiles use.</summary>
     public string HardwareId { get; } = hardwareId;
 
-    public string DisplayName { get; } = displayName;
+    /// <summary>The product name, numbered when identical keyboards are listed: "GMMK PRO #2".</summary>
+    public string Title { get; } = title;
 
-    // The engine names keyboards "Keyboard N - <hardware id>"; show the two parts on separate lines.
-    public string Title => DisplayName.Contains(" - ", StringComparison.Ordinal) ? DisplayName[..DisplayName.IndexOf(" - ", StringComparison.Ordinal)] : DisplayName;
+    /// <summary>Shared by every interface of this physical keyboard.</summary>
+    public string DeviceKey { get; } = deviceKey.Length > 0 ? deviceKey : hardwareId;
 
-    public string Subtitle => DisplayName.Contains(" - ", StringComparison.Ordinal) ? DisplayName[(DisplayName.IndexOf(" - ", StringComparison.Ordinal) + 3)..] : HardwareId;
+    public string ProductName { get; } = productName.Length > 0 ? productName : title;
+
+    public string Subtitle => HardwareId;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(StatusText), nameof(StatusKind))]
     private bool _isRunning;
+
+    /// <summary>True for a moment after a key was pressed on this keyboard.</summary>
+    [ObservableProperty]
+    private bool _isFlashing;
+
+    public void Flash(DateTime until)
+    {
+        _flashUntil = until;
+        IsFlashing = true;
+    }
+
+    public void UpdateFlash(DateTime now)
+    {
+        if (IsFlashing && now >= _flashUntil)
+        {
+            IsFlashing = false;
+        }
+    }
 
     public string StatusText => IsRunning ? "Running" : "Stopped";
 

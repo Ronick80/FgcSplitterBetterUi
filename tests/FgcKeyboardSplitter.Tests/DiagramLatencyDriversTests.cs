@@ -146,12 +146,15 @@ public class LatencyViewModelTests
 
     public LatencyViewModelTests()
     {
-        _client.Keyboards.Add(new KeyboardInfo(FirstId, $"Keyboard 1 - {FirstId}"));
-        _client.Keyboards.Add(new KeyboardInfo(SecondId, $"Keyboard 2 - {SecondId}"));
+        _client.Keyboards.Add(new KeyboardInfo(FirstId, $"Keyboard 1 - {FirstId}", "Keyboard 1", "{DEV-1}"));
+        _client.Keyboards.Add(new KeyboardInfo(SecondId, $"Keyboard 2 - {SecondId}", "Keyboard 2", "{DEV-2}"));
         _engine = new EngineService(_client);
         _engine.RefreshDrivers();
         _keyboards = new KeyboardsViewModel(_engine, new FakeNavigator(), new KeyboardSelection());
-        _keyboards.RefreshCommand.ExecuteAsync(null).GetAwaiter().GetResult();
+        _keyboards.SetActive(true);
+        _client.Press(FirstId);
+        _client.Press(SecondId);
+        _engine.Poll();
         _latency = new LatencyViewModel(_engine, _keyboards);
     }
 

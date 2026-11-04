@@ -44,6 +44,8 @@ internal struct NativeKeyboardInfo
     public uint StructSize;
     public HardwareIdBuffer HardwareId;
     public DisplayNameBuffer DisplayName;
+    public DisplayNameBuffer ProductName;
+    public HardwareIdBuffer DeviceId;
 }
 
 [StructLayout(LayoutKind.Sequential)]

@@ -7,8 +7,11 @@ namespace FgcKeyboardSplitter.Tests;
 
 public class KeyboardsViewModelTests
 {
-    private const string FirstId = @"HID\KB1";
-    private const string SecondId = @"HID\KB2";
+    private const string FirstId = @"HID\KB1&MI_00";
+    private const string FirstMediaId = @"HID\KB1&MI_01";
+    private const string SecondId = @"HID\KB2&MI_00";
+    private const string TwinAId = @"HID\TWIN&MI_00";
+    private const string TwinBId = @"HID\TWIN&MI_00#2";
 
     private readonly FakeFgcClient _client = new();
     private readonly FakeNavigator _navigator = new();
@@ -18,78 +21,180 @@ public class KeyboardsViewModelTests
 
     public KeyboardsViewModelTests()
     {
-        _client.Keyboards.Add(new KeyboardInfo(FirstId, $"Keyboard 1 - {FirstId}"));
-        _client.Keyboards.Add(new KeyboardInfo(SecondId, $"Keyboard 2 - {SecondId}"));
+        _client.Keyboards.Add(new KeyboardInfo(FirstId, $"Keyboard 1 - {FirstId}", "GMMK PRO", "{DEV-1}"));
+        _client.Keyboards.Add(new KeyboardInfo(FirstMediaId, $"Keyboard 2 - {FirstMediaId}", "GMMK PRO", "{DEV-1}"));
+        _client.Keyboards.Add(new KeyboardInfo(SecondId, $"Keyboard 3 - {SecondId}", "Apex Pro", "{DEV-2}"));
+        // Identical keyboards: same name, no device ID that tells them apart.
+        _client.Keyboards.Add(new KeyboardInfo(TwinAId, $"Keyboard 4 - {TwinAId}", "Twin Board", ""));
+        _client.Keyboards.Add(new KeyboardInfo(TwinBId, $"Keyboard 5 - {TwinBId}", "Twin Board", ""));
         _engine = new EngineService(_client);
         _engine.RefreshDrivers();
         _vm = new KeyboardsViewModel(_engine, _navigator, _selection);
+        _vm.SetActive(true);
     }
 
-    private async Task<KeyboardItem> LoadFirstAsync()
+    private KeyboardItem Join(string hardwareId)
     {
-        await _vm.RefreshCommand.ExecuteAsync(null);
-        return _vm.Keyboards[0];
-    }
-
-    [Fact]
-    public async Task RefreshLoadsTheKeyboardList()
-    {
-        await _vm.RefreshCommand.ExecuteAsync(null);
-
-        Assert.Equal(new[] { "Keyboard 1", "Keyboard 2" }, _vm.Keyboards.Select(k => k.Title));
-        Assert.Equal(new[] { FirstId, SecondId }, _vm.Keyboards.Select(k => k.Subtitle));
-        Assert.False(_vm.HasNoKeyboards);
+        _client.Press(hardwareId);
+        _engine.Poll();
+        return _vm.Keyboards.Single(k => k.HardwareId == hardwareId);
     }
 
     [Fact]
-    public async Task RefreshKeepsTheSelectedKeyboard()
+    public void TheListStartsEmptyAndWaitsForAKeyPress()
     {
-        await _vm.RefreshCommand.ExecuteAsync(null);
-        _vm.Selected = _vm.Keyboards[1];
-
-        await _vm.RefreshCommand.ExecuteAsync(null);
-
-        Assert.Equal(SecondId, _vm.Selected?.HardwareId);
-    }
-
-    [Fact]
-    public async Task RefreshFailureExplainsTheProblem()
-    {
-        _client.RefreshResult = FgcResult.DriverMissing;
-
-        await _vm.RefreshCommand.ExecuteAsync(null);
-
         Assert.Empty(_vm.Keyboards);
-        Assert.Contains("unavailable", _vm.ListProblem);
-        Assert.False(_vm.HasNoKeyboards);
-    }
-
-    [Fact]
-    public async Task EmptyListWithoutAProblemShowsTheEmptyHint()
-    {
-        _client.Keyboards.Clear();
-
-        await _vm.RefreshCommand.ExecuteAsync(null);
-
         Assert.True(_vm.HasNoKeyboards);
+        Assert.True(_vm.IsWatching);
+        Assert.True(_client.WatchActive);
     }
 
     [Fact]
-    public async Task SelectionIsSharedWithOtherPages()
+    public void AKeyPressAddsTheKeyboardUnderItsProductName()
     {
-        KeyboardItem keyboard = await LoadFirstAsync();
+        KeyboardItem keyboard = Join(FirstId);
 
+        Assert.Equal("GMMK PRO", keyboard.Title);
+        Assert.Equal(FirstId, keyboard.Subtitle);
+        Assert.False(_vm.HasNoKeyboards);
+        Assert.True(_vm.HasKeyboards);
+    }
+
+    [Fact]
+    public void AKeyPressSelectsAndFlashesTheKeyboard()
+    {
+        KeyboardItem first = Join(FirstId);
+        Join(SecondId);
+
+        _client.Press(FirstId);
+        _engine.Poll();
+
+        Assert.Same(first, _vm.Selected);
+        Assert.Same(first, _selection.Selected);
+        Assert.True(first.IsFlashing);
+        Assert.Equal(2, _vm.Keyboards.Count);
+    }
+
+    [Fact]
+    public void TheFlashEndsAfterAMoment()
+    {
+        KeyboardItem keyboard = Join(FirstId);
+
+        keyboard.UpdateFlash(DateTime.UtcNow + TimeSpan.FromSeconds(5));
+
+        Assert.False(keyboard.IsFlashing);
+    }
+
+    [Fact]
+    public void AnotherInterfaceOfTheSameKeyboardFindsTheSameCard()
+    {
+        KeyboardItem keyboard = Join(FirstId);
+
+        _client.Press(FirstMediaId);
+        _engine.Poll();
+
+        Assert.Single(_vm.Keyboards);
+        Assert.Equal(FirstId, keyboard.HardwareId); // the interface that joined first keeps driving it
+        Assert.Same(keyboard, _vm.Selected);
+    }
+
+    [Fact]
+    public void IdenticalKeyboardsGetNumberedCards()
+    {
+        Join(TwinAId);
+        Join(TwinBId);
+
+        Assert.Equal(new[] { "Twin Board", "Twin Board #2" }, _vm.Keyboards.Select(k => k.Title));
+    }
+
+    [Fact]
+    public void WatchingFollowsThePage()
+    {
+        _vm.SetActive(false);
+
+        Assert.False(_vm.IsWatching);
+        Assert.False(_client.WatchActive);
+
+        _vm.SetActive(true);
+
+        Assert.True(_vm.IsWatching);
+    }
+
+    [Fact]
+    public void WatchingWaitsForTheDrivers()
+    {
+        _client.Drivers = new DriverStatus(InterceptionState.RebootRequired, true);
+        _engine.RefreshDrivers();
+
+        Assert.False(_vm.IsWatching);
+        Assert.True(_vm.ShowDriverWarning);
+
+        _client.Drivers = new DriverStatus(InterceptionState.Installed, true);
+        _engine.RefreshDrivers();
+
+        Assert.True(_vm.IsWatching);
+    }
+
+    [Fact]
+    public void AWatchFailureExplainsTheProblem()
+    {
+        _vm.SetActive(false);
+        _client.WatchResult = FgcResult.DeviceBusy;
+
+        _vm.SetActive(true);
+
+        Assert.False(_vm.IsWatching);
+        Assert.Contains("unavailable", _vm.ListProblem);
+    }
+
+    [Fact]
+    public void KeyPressesOnARunningKeyboardHighlightIt()
+    {
+        KeyboardItem first = Join(FirstId);
+        KeyboardItem second = Join(SecondId);
+        StartNow(first);
+        _engine.Poll(); // first count seen: nothing to compare with yet
+        Assert.Same(second, _vm.Selected);
+
+        _client.PressCounts[FirstId] = 3;
+        _engine.Poll();
+
+        Assert.Same(first, _vm.Selected);
+        Assert.True(first.IsFlashing);
+    }
+
+    [Fact]
+    public void RunningKeyboardsAreNotHighlightedWhileThePageIsHidden()
+    {
+        KeyboardItem first = Join(FirstId);
+        KeyboardItem second = Join(SecondId);
+        StartNow(first);
+        _engine.Poll();
+        _vm.SetActive(false);
+
+        _client.PressCounts[FirstId] = 3;
+        _engine.Poll();
+
+        Assert.Same(second, _vm.Selected);
+    }
+
+    [Fact]
+    public void SelectionIsSharedWithOtherPages()
+    {
+        KeyboardItem keyboard = Join(FirstId);
+
+        _vm.Selected = null;
         _vm.Selected = keyboard;
 
         Assert.Same(keyboard, _selection.Selected);
     }
 
     [Fact]
-    public async Task StartIsBlockedUntilBothDriversAreReady()
+    public void StartIsBlockedUntilBothDriversAreReady()
     {
+        KeyboardItem keyboard = Join(FirstId);
         _client.Drivers = new DriverStatus(InterceptionState.RebootRequired, true);
         _engine.RefreshDrivers();
-        KeyboardItem keyboard = await LoadFirstAsync();
 
         Assert.True(_vm.ShowDriverWarning);
         Assert.False(_vm.StartCommand.CanExecute(keyboard));
@@ -102,12 +207,11 @@ public class KeyboardsViewModelTests
     }
 
     [Fact]
-    public async Task StartIsBlockedWhenNoControllerSlotIsFree()
+    public void StartIsBlockedWhenNoControllerSlotIsFree()
     {
-        KeyboardItem keyboard = await LoadFirstAsync();
         _client.Limit = new ControllerLimit(4, 0, 1, false);
 
-        _engine.Poll();
+        KeyboardItem keyboard = Join(FirstId);
 
         Assert.True(_vm.SlotsFull);
         Assert.False(_vm.StartCommand.CanExecute(keyboard));
@@ -116,7 +220,7 @@ public class KeyboardsViewModelTests
     [Fact]
     public async Task StartingAndStoppingAKeyboardUpdatesItsState()
     {
-        KeyboardItem keyboard = await LoadFirstAsync();
+        KeyboardItem keyboard = Join(FirstId);
 
         await _vm.StartCommand.ExecuteAsync(keyboard);
         _engine.Poll();
@@ -140,7 +244,7 @@ public class KeyboardsViewModelTests
     [Fact]
     public async Task AFailedStartShowsTheEngineMessage()
     {
-        KeyboardItem keyboard = await LoadFirstAsync();
+        KeyboardItem keyboard = Join(FirstId);
         _client.StartResult = FgcResult.DeviceBusy;
 
         await _vm.StartCommand.ExecuteAsync(keyboard);
@@ -152,9 +256,8 @@ public class KeyboardsViewModelTests
     [Fact]
     public async Task StopAllReleasesEveryKeyboard()
     {
-        await _vm.RefreshCommand.ExecuteAsync(null);
-        await _vm.StartCommand.ExecuteAsync(_vm.Keyboards[0]);
-        await _vm.StartCommand.ExecuteAsync(_vm.Keyboards[1]);
+        await _vm.StartCommand.ExecuteAsync(Join(FirstId));
+        await _vm.StartCommand.ExecuteAsync(Join(SecondId));
         _engine.Poll();
 
         await _vm.StopAllCommand.ExecuteAsync(null);
@@ -165,9 +268,36 @@ public class KeyboardsViewModelTests
     }
 
     [Fact]
-    public async Task ShowsWhichControllerSlotsAreTaken()
+    public async Task ClearIdleKeepsRunningKeyboards()
     {
-        await LoadFirstAsync();
+        KeyboardItem running = Join(FirstId);
+        KeyboardItem idle = Join(SecondId);
+        await _vm.StartCommand.ExecuteAsync(running);
+        _engine.Poll();
+        Assert.Same(idle, _vm.Selected);
+
+        _vm.ClearIdleCommand.Execute(null);
+
+        Assert.Equal(new[] { running }, _vm.Keyboards);
+        Assert.Null(_vm.Selected);
+        Assert.False(_vm.ClearIdleCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void AClearedKeyboardComesBackWithItsNextKeyPress()
+    {
+        Join(FirstId);
+        _vm.ClearIdleCommand.Execute(null);
+        Assert.Empty(_vm.Keyboards);
+
+        KeyboardItem keyboard = Join(FirstId);
+
+        Assert.Equal("GMMK PRO", keyboard.Title);
+    }
+
+    [Fact]
+    public void ShowsWhichControllerSlotsAreTaken()
+    {
         _client.Limit = new ControllerLimit(1, 1, 1, true);
 
         _engine.Poll();
@@ -179,51 +309,18 @@ public class KeyboardsViewModelTests
     }
 
     [Fact]
-    public async Task IdentifySelectsTheKeyboardThatReceivedTheKeyPress()
+    public void EngineEventsBecomeDismissibleNotices()
     {
-        await LoadFirstAsync();
-
-        _vm.ToggleIdentifyCommand.Execute(null);
-        Assert.True(_vm.IsIdentifying);
-        Assert.True(_client.IdentifyActive);
-        Assert.Equal("Cancel identify", _vm.IdentifyButtonText);
-
-        _engine.Poll();
-        Assert.True(_vm.IsIdentifying);
-
-        _client.IdentifyIndex = 1;
-        _engine.Poll();
-
-        Assert.False(_vm.IsIdentifying);
-        Assert.False(_client.IdentifyActive);
-        Assert.Equal(SecondId, _vm.Selected?.HardwareId);
-    }
-
-    [Fact]
-    public async Task IdentifyCanBeCancelled()
-    {
-        await LoadFirstAsync();
-        _vm.ToggleIdentifyCommand.Execute(null);
-
-        _vm.ToggleIdentifyCommand.Execute(null);
-
-        Assert.False(_vm.IsIdentifying);
-        Assert.False(_client.IdentifyActive);
-        Assert.Null(_vm.Selected);
-    }
-
-    [Fact]
-    public async Task EngineEventsBecomeDismissibleNotices()
-    {
-        await LoadFirstAsync();
+        Join(FirstId);
+        Join(SecondId);
         _client.Events.Enqueue(new EngineEvent(EngineEventType.KeyboardDisconnected, FirstId));
         _client.Events.Enqueue(new EngineEvent(EngineEventType.SessionFaulted, SecondId));
 
         _engine.Poll();
 
         Assert.Equal(2, _vm.Notices.Count);
-        Assert.Contains("Keyboard 1 was unplugged", _vm.Notices[0].Text);
-        Assert.Contains("Keyboard 2 stopped unexpectedly", _vm.Notices[1].Text);
+        Assert.Contains("GMMK PRO was unplugged", _vm.Notices[0].Text);
+        Assert.Contains("Apex Pro stopped unexpectedly", _vm.Notices[1].Text);
 
         _vm.DismissNoticeCommand.Execute(_vm.Notices[0]);
 
@@ -231,11 +328,25 @@ public class KeyboardsViewModelTests
     }
 
     [Fact]
-    public async Task EditMappingSelectsTheKeyboardAndOpensTheMappingPage()
+    public void AnUnpluggedKeyboardLeavesTheList()
     {
-        await _vm.RefreshCommand.ExecuteAsync(null);
+        Join(FirstId);
+        KeyboardItem second = Join(SecondId);
+        _client.Events.Enqueue(new EngineEvent(EngineEventType.KeyboardDisconnected, FirstId));
 
-        _vm.EditMappingCommand.Execute(_vm.Keyboards[1]);
+        _engine.Poll();
+
+        Assert.Equal(new[] { second }, _vm.Keyboards);
+    }
+
+    [Fact]
+    public void EditMappingSelectsTheKeyboardAndOpensTheMappingPage()
+    {
+        Join(FirstId);
+        KeyboardItem second = Join(SecondId);
+        _vm.Selected = null;
+
+        _vm.EditMappingCommand.Execute(second);
 
         Assert.Equal(SecondId, _selection.Selected?.HardwareId);
         Assert.Equal(1, _navigator.MappingShown);
@@ -248,4 +359,6 @@ public class KeyboardsViewModelTests
 
         Assert.Equal(1, _navigator.DriversShown);
     }
+
+    private void StartNow(KeyboardItem keyboard) => _vm.StartCommand.ExecuteAsync(keyboard).GetAwaiter().GetResult();
 }

@@ -6,19 +6,26 @@ using FgcKeyboardSplitter.Services;
 
 namespace FgcKeyboardSplitter.ViewModels;
 
+/// <summary>
+/// "Press any key to join": a keyboard appears once a key is pressed on it, so only keyboards people actually use
+/// are listed (a mouse's keyboard interface never shows up). Pressing a key on a listed keyboard, idle or running,
+/// selects and flashes it, to remind players which one is theirs.
+/// </summary>
 public sealed partial class KeyboardsViewModel : ObservableObject
 {
     private const int MaxControllers = 4;
-    private static readonly TimeSpan IdentifyTimeout = TimeSpan.FromSeconds(15);
+    private const int MaxPressesPerPoll = 32;
     private static readonly TimeSpan LimitInterval = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan FlashDuration = TimeSpan.FromMilliseconds(900);
 
     private readonly EngineService _engine;
     private readonly INavigator _navigator;
     private readonly KeyboardSelection _selection;
-    private DateTime _identifyStartedAt;
+    private readonly Dictionary<string, uint> _pressCounts = [];
     private DateTime _limitCheckedAt = DateTime.MinValue;
     private bool _limitAllowed = true;
     private bool _limitDirty;
+    private bool _active;
 
     public KeyboardsViewModel(EngineService engine, INavigator navigator, KeyboardSelection selection)
     {
@@ -35,11 +42,13 @@ public sealed partial class KeyboardsViewModel : ObservableObject
         _engine.DriversChanged += (_, _) =>
         {
             OnPropertyChanged(nameof(ShowDriverWarning));
+            UpdateWatch();
             NotifyCommands();
         };
         _engine.EngineEventReceived += (_, engineEvent) => OnEngineEvent(engineEvent);
     }
 
+    /// <summary>Keyboards that joined with a key press, one per physical device.</summary>
     public ObservableCollection<KeyboardItem> Keyboards { get; } = [];
 
     public ObservableCollection<Notice> Notices { get; } = [];
@@ -52,9 +61,9 @@ public sealed partial class KeyboardsViewModel : ObservableObject
         set => _selection.Selected = value;
     }
 
+    /// <summary>True while key presses are being watched for, which is only while the page is in front.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IdentifyButtonText), nameof(IdentifyHint))]
-    private bool _isIdentifying;
+    private bool _isWatching;
 
     [ObservableProperty]
     private string _statusMessage = string.Empty;
@@ -69,7 +78,6 @@ public sealed partial class KeyboardsViewModel : ObservableObject
     private bool _slotsFull;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasNoKeyboards))]
     private string _listProblem = string.Empty;
 
     [ObservableProperty]
@@ -77,49 +85,18 @@ public sealed partial class KeyboardsViewModel : ObservableObject
 
     public bool ShowDriverWarning => !_engine.DriversReady;
 
-    public bool HasNoKeyboards => Keyboards.Count == 0 && ListProblem.Length == 0;
+    public bool HasNoKeyboards => Keyboards.Count == 0;
 
-    public string IdentifyButtonText => IsIdentifying ? "Cancel identify" : "Identify by key press";
+    public bool HasKeyboards => Keyboards.Count > 0;
 
-    public string IdentifyHint => IsIdentifying ? "Press any key on the keyboard you want to use..." : string.Empty;
-
-    public Task InitializeAsync() => RefreshAsync();
-
-    [RelayCommand]
-    private async Task RefreshAsync()
+    /// <summary>
+    /// Watches for key presses while the page is shown and the window is active. Watching routes idle keyboards
+    /// through the engine (their keys still reach Windows), so it stops whenever nobody is looking at the list.
+    /// </summary>
+    public void SetActive(bool active)
     {
-        string? keepSelected = Selected?.HardwareId;
-        (FgcResult result, IReadOnlyList<KeyboardInfo> list) = await Task.Run(() =>
-        {
-            FgcResult refreshed = _engine.Client.RefreshKeyboards();
-            if (refreshed != FgcResult.Ok)
-            {
-                return (refreshed, (IReadOnlyList<KeyboardInfo>)[]);
-            }
-
-            FgcResult read = _engine.Client.GetKeyboards(out IReadOnlyList<KeyboardInfo> keyboards);
-            return (read, keyboards);
-        });
-
-        ListProblem = result == FgcResult.Ok ? string.Empty : $"Keyboard list unavailable: {FgcErrors.Describe(result)}";
-        ReplaceKeyboards(list, keepSelected);
-        _limitDirty = true;
-    }
-
-    [RelayCommand]
-    private void ToggleIdentify()
-    {
-        if (IsIdentifying)
-        {
-            _engine.Client.IdentifyCancel();
-            IsIdentifying = false;
-            return;
-        }
-
-        FgcResult result = _engine.Client.IdentifyBegin();
-        IsIdentifying = result == FgcResult.Ok;
-        _identifyStartedAt = DateTime.UtcNow;
-        Report("Identify", result, string.Empty);
+        _active = active;
+        UpdateWatch();
     }
 
     [RelayCommand(CanExecute = nameof(CanStart))]
@@ -156,6 +133,19 @@ public sealed partial class KeyboardsViewModel : ObservableObject
         _limitDirty = true;
     }
 
+    /// <summary>Removes the keyboards that are not running; they come back with their next key press.</summary>
+    [RelayCommand(CanExecute = nameof(CanClearIdle))]
+    private void ClearIdle()
+    {
+        foreach (KeyboardItem keyboard in Keyboards.Where(k => !k.IsRunning).ToList())
+        {
+            Remove(keyboard);
+        }
+
+        StatusIsError = false;
+        StatusMessage = string.Empty;
+    }
+
     [RelayCommand]
     private void DismissNotice(Notice? notice)
     {
@@ -184,11 +174,14 @@ public sealed partial class KeyboardsViewModel : ObservableObject
 
     private bool CanStopAll() => RunningSessions > 0;
 
+    private bool CanClearIdle() => Keyboards.Any(k => !k.IsRunning);
+
     private void NotifyCommands()
     {
         StartCommand.NotifyCanExecuteChanged();
         StopCommand.NotifyCanExecuteChanged();
         StopAllCommand.NotifyCanExecuteChanged();
+        ClearIdleCommand.NotifyCanExecuteChanged();
     }
 
     private void Report(string action, FgcResult result, string success)
@@ -197,32 +190,131 @@ public sealed partial class KeyboardsViewModel : ObservableObject
         StatusMessage = result == FgcResult.Ok ? success : $"{action}: {FgcErrors.Describe(result)}";
     }
 
-    private void ReplaceKeyboards(IReadOnlyList<KeyboardInfo> list, string? keepSelected)
+    private void UpdateWatch()
     {
-        Keyboards.Clear();
-        foreach (KeyboardInfo info in list)
+        bool wanted = _active && _engine.DriversReady;
+        if (wanted && !IsWatching)
         {
-            Keyboards.Add(new KeyboardItem(info.HardwareId, info.DisplayName));
+            FgcResult result = _engine.Client.WatchBegin();
+            IsWatching = result == FgcResult.Ok;
+            ListProblem = IsWatching ? string.Empty : $"Keyboard detection unavailable: {FgcErrors.Describe(result)}";
         }
-
-        Selected = Keyboards.FirstOrDefault(k => k.HardwareId == keepSelected);
-        OnPropertyChanged(nameof(HasNoKeyboards));
-        UpdateRunning();
+        else if (!wanted && IsWatching)
+        {
+            _engine.Client.WatchEnd();
+            IsWatching = false;
+        }
     }
 
     private void OnPolled()
     {
         UpdateRunning();
-        if (IsIdentifying)
+        if (IsWatching)
         {
-            PollIdentify();
+            PollPresses();
         }
 
-        if (_limitDirty || DateTime.UtcNow - _limitCheckedAt >= LimitInterval)
+        if (_active)
+        {
+            CheckRunningPresses();
+        }
+
+        DateTime now = DateTime.UtcNow;
+        foreach (KeyboardItem keyboard in Keyboards)
+        {
+            keyboard.UpdateFlash(now);
+        }
+
+        if (_limitDirty || now - _limitCheckedAt >= LimitInterval)
         {
             RefreshLimit();
         }
 
+        NotifyCommands();
+    }
+
+    private void PollPresses()
+    {
+        for (int i = 0; i < MaxPressesPerPoll; i++)
+        {
+            if (_engine.Client.WatchPoll(out KeyboardInfo? pressed) != FgcResult.Ok || pressed is null)
+            {
+                return;
+            }
+
+            OnKeyPressed(pressed);
+        }
+    }
+
+    private void OnKeyPressed(KeyboardInfo info)
+    {
+        // Interfaces of one device share a device ID, so a press on any of them finds the same card. The card keeps
+        // the interface that joined first: that is the one a session captures and the one its profiles belong to.
+        string deviceKey = info.DeviceId.Length > 0 ? info.DeviceId : info.HardwareId;
+        KeyboardItem? keyboard = Keyboards.FirstOrDefault(k => k.DeviceKey == deviceKey);
+        if (keyboard is null)
+        {
+            keyboard = new KeyboardItem(info.HardwareId, TitleFor(info.ProductName), deviceKey, ProductNameOf(info.ProductName));
+            Keyboards.Add(keyboard);
+            OnKeyboardsChanged();
+            UpdateRunning();
+        }
+
+        Highlight(keyboard);
+    }
+
+    /// <summary>A running keyboard's keys never reach the watch, so its press counter shows it is in use.</summary>
+    private void CheckRunningPresses()
+    {
+        foreach (KeyboardItem keyboard in Keyboards)
+        {
+            if (!keyboard.IsRunning || _engine.Client.GetKeyPressCount(keyboard.HardwareId, out uint count) != FgcResult.Ok)
+            {
+                _pressCounts.Remove(keyboard.HardwareId);
+                continue;
+            }
+
+            if (_pressCounts.TryGetValue(keyboard.HardwareId, out uint seen) && seen != count)
+            {
+                Highlight(keyboard);
+            }
+
+            _pressCounts[keyboard.HardwareId] = count;
+        }
+    }
+
+    private void Highlight(KeyboardItem keyboard)
+    {
+        Selected = keyboard;
+        keyboard.Flash(DateTime.UtcNow + FlashDuration);
+    }
+
+    private static string ProductNameOf(string productName) => productName.Length > 0 ? productName : "Keyboard";
+
+    // Identical keyboards share a product name, so later ones are numbered: "GMMK PRO", "GMMK PRO #2".
+    private string TitleFor(string productName)
+    {
+        string name = ProductNameOf(productName);
+        int same = Keyboards.Count(k => k.ProductName == name);
+        return same == 0 ? name : $"{name} #{same + 1}";
+    }
+
+    private void Remove(KeyboardItem keyboard)
+    {
+        Keyboards.Remove(keyboard);
+        _pressCounts.Remove(keyboard.HardwareId);
+        if (ReferenceEquals(Selected, keyboard))
+        {
+            Selected = null;
+        }
+
+        OnKeyboardsChanged();
+    }
+
+    private void OnKeyboardsChanged()
+    {
+        OnPropertyChanged(nameof(HasNoKeyboards));
+        OnPropertyChanged(nameof(HasKeyboards));
         NotifyCommands();
     }
 
@@ -237,33 +329,6 @@ public sealed partial class KeyboardsViewModel : ObservableObject
         }
 
         RunningSessions = _engine.Client.GetRunningSessionCount(out uint count) == FgcResult.Ok ? count : 0;
-    }
-
-    private void PollIdentify()
-    {
-        FgcResult result = _engine.Client.IdentifyPoll(out int index);
-        bool timedOut = DateTime.UtcNow - _identifyStartedAt > IdentifyTimeout;
-        if (result == FgcResult.Ok && index < 0 && !timedOut)
-        {
-            return;
-        }
-
-        _engine.Client.IdentifyCancel();
-        IsIdentifying = false;
-        if (index < 0)
-        {
-            return;
-        }
-
-        // The engine may have rescanned while resolving the keyboard, so read the list again.
-        if (_engine.Client.GetKeyboards(out IReadOnlyList<KeyboardInfo> list) == FgcResult.Ok)
-        {
-            ReplaceKeyboards(list, null);
-            if (index < Keyboards.Count)
-            {
-                Selected = Keyboards[index];
-            }
-        }
     }
 
     private void RefreshLimit()
@@ -291,10 +356,17 @@ public sealed partial class KeyboardsViewModel : ObservableObject
 
     private void OnEngineEvent(EngineEvent engineEvent)
     {
-        string name = Keyboards.FirstOrDefault(k => k.HardwareId == engineEvent.HardwareId)?.Title ?? engineEvent.HardwareId;
-        Notices.Add(new Notice(engineEvent.Type == EngineEventType.KeyboardDisconnected
-            ? $"{name} was unplugged. Its mapping stopped and the virtual controller was released."
+        KeyboardItem? keyboard = Keyboards.FirstOrDefault(k => k.HardwareId == engineEvent.HardwareId);
+        string name = keyboard?.Title ?? engineEvent.HardwareId;
+        bool unplugged = engineEvent.Type == EngineEventType.KeyboardDisconnected;
+        Notices.Add(new Notice(unplugged
+            ? $"{name} was unplugged. Its mapping stopped and the virtual controller was released. Plug it back in and press a key on it to add it again."
             : $"{name} stopped unexpectedly (lost contact with the keyboard driver). Click Start to resume."));
+        if (unplugged && keyboard is not null)
+        {
+            Remove(keyboard);
+        }
+
         _limitDirty = true;
     }
 }
