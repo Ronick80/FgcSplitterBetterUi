@@ -39,6 +39,14 @@ public sealed class FgcClient : IFgcClient
                 $"FgcCore reports API version {api}, but this program supports version {SupportedApiVersion}. Use a matching FgcCore.dll.");
         }
 
+        // Same API version, but the watch functions arrived in FgcCore 1.4.0; refuse an older engine up front
+        // instead of failing on the first call that needs them.
+        if (!HasExport("fgc_watch_begin"))
+        {
+            throw new FgcException(FgcResult.NotImplemented,
+                $"FgcCore {EngineVersion} is too old: this program needs FgcCore 1.4.0 or newer. Use a matching FgcCore.dll.");
+        }
+
         var result = (FgcResult)NativeMethods.Create(out FgcContextHandle context);
         if (result != FgcResult.Ok)
         {
@@ -48,6 +56,10 @@ public sealed class FgcClient : IFgcClient
 
         return new FgcClient(context);
     }
+
+    private static bool HasExport(string name) =>
+        NativeLibrary.TryLoad("FgcCore", typeof(FgcClient).Assembly, null, out IntPtr library) &&
+        NativeLibrary.TryGetExport(library, name, out _);
 
     /// <summary>Stops all sessions, restores keyboards and releases the context.</summary>
     public void Dispose() => _context.Dispose();
@@ -81,7 +93,7 @@ public sealed class FgcClient : IFgcClient
             var native = new NativeKeyboardInfo { StructSize = Size<NativeKeyboardInfo>() };
             if ((FgcResult)NativeMethods.GetKeyboard(_context, i, ref native) == FgcResult.Ok)
             {
-                list.Add(new KeyboardInfo(NativeText.FromUtf8(native.HardwareId), NativeText.FromUtf8(native.DisplayName)));
+                list.Add(ToKeyboardInfo(native));
             }
         }
 
@@ -89,22 +101,39 @@ public sealed class FgcClient : IFgcClient
         return FgcResult.Ok;
     }
 
-    /// <summary>Starts watching all idle keyboards; their keys still reach Windows normally.</summary>
-    public FgcResult IdentifyBegin() => (FgcResult)NativeMethods.IdentifyBegin(_context);
+    /// <summary>
+    /// Starts reporting every key press on idle keyboards; their keys still reach Windows normally. It continues until
+    /// <see cref="WatchEnd"/>, following keyboards as they start, stop or are plugged in.
+    /// </summary>
+    public FgcResult WatchBegin() => (FgcResult)NativeMethods.WatchBegin(_context);
 
-    public FgcResult IdentifyCancel() => (FgcResult)NativeMethods.IdentifyCancel(_context);
+    public FgcResult WatchEnd() => (FgcResult)NativeMethods.WatchEnd(_context);
 
-    /// <summary>Index into the list from <see cref="GetKeyboards"/>, or -1 while no key was pressed.</summary>
-    public FgcResult IdentifyPoll(out int index)
+    /// <summary>Call regularly while watching; it also picks up newly plugged keyboards.</summary>
+    public FgcResult WatchPoll(out KeyboardInfo? pressed)
     {
-        var result = (FgcResult)NativeMethods.IdentifyPoll(_context, out index);
+        var native = new NativeKeyboardInfo { StructSize = Size<NativeKeyboardInfo>() };
+        var result = (FgcResult)NativeMethods.WatchPoll(_context, ref native, out int wasPressed);
+        pressed = result == FgcResult.Ok && wasPressed != 0 ? ToKeyboardInfo(native) : null;
+        return result;
+    }
+
+    public FgcResult GetKeyPressCount(string hardwareId, out uint count)
+    {
+        var result = (FgcResult)NativeMethods.GetKeyPressCount(_context, hardwareId, out count);
         if (result != FgcResult.Ok)
         {
-            index = -1;
+            count = 0;
         }
 
         return result;
     }
+
+    private static KeyboardInfo ToKeyboardInfo(in NativeKeyboardInfo native) => new(
+        NativeText.FromUtf8(native.HardwareId),
+        NativeText.FromUtf8(native.DisplayName),
+        NativeText.FromUtf8(native.ProductName),
+        NativeText.FromUtf8(native.DeviceId));
 
     /// <summary>The mapping used for keyboards that have none of their own.</summary>
     public static Mapping GetDefaultMapping()

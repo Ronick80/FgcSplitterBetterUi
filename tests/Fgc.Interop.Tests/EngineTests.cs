@@ -67,6 +67,20 @@ public class EngineTests(EngineFixture engine)
     }
 
     [Fact]
+    public void WatchPollReportsNothingWhileNotWatching()
+    {
+        Assert.Equal(FgcResult.Ok, _client.WatchPoll(out KeyboardInfo? pressed));
+        Assert.Null(pressed);
+    }
+
+    [Fact]
+    public void KeyPressCountNeedsARunningKeyboard()
+    {
+        Assert.Equal(FgcResult.NotRunning, _client.GetKeyPressCount(@"HID\NOT_A_KEYBOARD", out uint count));
+        Assert.Equal(0u, count);
+    }
+
+    [Fact]
     public void ControllerLimitIsReadable()
     {
         Assert.Equal(FgcResult.Ok, _client.CheckControllerLimit(1, out ControllerLimit limit));

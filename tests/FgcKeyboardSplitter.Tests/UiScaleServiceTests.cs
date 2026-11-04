@@ -64,6 +64,32 @@ public sealed class UiScaleServiceTests : IDisposable
     }
 
     [Fact]
+    public void ReportsTheLevelAndWhetherItCanGoFurther()
+    {
+        var scale = new UiScaleService(null);
+
+        Assert.Equal("100%", scale.PercentText);
+        Assert.True(scale.CanZoomIn);
+        Assert.True(scale.CanZoomOut);
+
+        while (scale.CanZoomIn)
+        {
+            scale.ZoomIn();
+        }
+
+        Assert.Equal("150%", scale.PercentText);
+        Assert.True(scale.CanZoomOut);
+
+        while (scale.CanZoomOut)
+        {
+            scale.ZoomOut();
+        }
+
+        Assert.Equal("80%", scale.PercentText);
+        Assert.False(scale.CanZoomOut);
+    }
+
+    [Fact]
     public void RemembersTheZoomBetweenRuns()
     {
         var first = new UiScaleService(SettingsPath);

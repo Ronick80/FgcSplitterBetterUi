@@ -61,7 +61,6 @@ public partial class App : Application
         MainWindow = window;
         window.Show();
         _engine.Start();
-        _ = keyboardsViewModel.InitializeAsync();
     }
 
     protected override void OnExit(ExitEventArgs e)

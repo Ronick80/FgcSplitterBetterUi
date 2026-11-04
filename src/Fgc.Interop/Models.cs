@@ -1,6 +1,10 @@
 namespace Fgc.Interop;
 
-public sealed record KeyboardInfo(string HardwareId, string DisplayName);
+/// <summary>
+/// One keyboard interface. A physical device can expose several; <paramref name="DeviceId"/> is shared by the
+/// interfaces of one device, and empty when it cannot be told apart from an identical device.
+/// </summary>
+public sealed record KeyboardInfo(string HardwareId, string DisplayName, string ProductName = "", string DeviceId = "");
 
 public readonly record struct DriverStatus(InterceptionState Interception, bool ScpVBusInstalled)
 {

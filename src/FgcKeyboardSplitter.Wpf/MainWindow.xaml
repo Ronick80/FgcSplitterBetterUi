@@ -6,8 +6,8 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:views="clr-namespace:FgcKeyboardSplitter.Views"
     Title="FGC Keyboard Splitter"
-    Width="1180"
-    Height="820"
+    Width="1400"
+    Height="1000"
     MinWidth="720"
     MinHeight="480"
     Background="{StaticResource ArcadeBlack}"
@@ -20,6 +20,21 @@
         <Style x:Key="NavLabel" TargetType="TextBlock">
             <Setter Property="Margin" Value="14,0,0,0" />
             <Setter Property="VerticalAlignment" Value="Center" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsCompact, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <!-- Zoom control at the bottom of the sidebar; the narrow sidebar keeps only the percentage. -->
+        <Style x:Key="ZoomButton" BasedOn="{StaticResource ArcadeButton}" TargetType="Button">
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="Padding" Value="9,3" />
+            <Setter Property="Margin" Value="0,0,10,4" />
+        </Style>
+        <Style x:Key="ZoomStepButton" BasedOn="{StaticResource ZoomButton}" TargetType="Button">
+            <Setter Property="Width" Value="36" />
+            <Setter Property="Padding" Value="0,3" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsCompact, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" Value="True">
                     <Setter Property="Visibility" Value="Collapsed" />
@@ -42,13 +57,48 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <ui:TitleBar
-            Title="FGC KEYBOARD SPLITTER"
+        <!-- Arcade-styled caption buttons: dim glyphs, lime on hover, red for close. The WPF-UI title bar is kept for
+             the Windows 11 snap layouts it offers on the maximize button. -->
+        <Border
             Grid.Row="0"
             Grid.ColumnSpan="2"
-            Background="{StaticResource ArcadeSidebar}"
-            FontFamily="{StaticResource ArcadeFont}"
-            Foreground="{StaticResource ArcadeTextDim}" />
+            BorderBrush="{StaticResource ArcadeLime}"
+            BorderThickness="0,0,0,2">
+            <ui:TitleBar
+                Background="{StaticResource ArcadeSidebar}"
+                ButtonsForeground="{StaticResource ArcadeTextDim}"
+                FontFamily="{StaticResource ArcadeFont}"
+                FontWeight="Bold"
+                Foreground="{StaticResource ArcadeTextDim}">
+                <!-- The FGC tag is the app's mark in the title bar; the sidebar spells out the rest of the name. -->
+                <ui:TitleBar.Header>
+                    <Border
+                        Margin="18,0,0,0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource ArcadeTag}">
+                        <TextBlock
+                            FontSize="18"
+                            Foreground="{StaticResource ArcadeBlack}"
+                            Style="{StaticResource ArcadeHeading}"
+                            Text="FGC" />
+                    </Border>
+                </ui:TitleBar.Header>
+                <ui:TitleBar.Resources>
+                    <Style BasedOn="{StaticResource {x:Type ui:TitleBarButton}}" TargetType="ui:TitleBarButton">
+                        <Setter Property="MouseOverBackground" Value="{StaticResource ArcadeLime}" />
+                        <Setter Property="MouseOverButtonsForeground" Value="{StaticResource ArcadeBlack}" />
+                        <Setter Property="PressedBackground" Value="{StaticResource ArcadeLime}" />
+                        <Setter Property="PressedForeground" Value="{StaticResource ArcadeBlack}" />
+                        <Style.Triggers>
+                            <Trigger Property="ButtonType" Value="Close">
+                                <Setter Property="MouseOverBackground" Value="{StaticResource ArcadeRed}" />
+                                <Setter Property="PressedBackground" Value="{StaticResource ArcadeRed}" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ui:TitleBar.Resources>
+            </ui:TitleBar>
+        </Border>
 
         <!-- Sidebar -->
         <Border
@@ -64,15 +114,7 @@
                 <DockPanel Margin="0,14,0,14" LastChildFill="False">
                     <!-- Logo -->
                     <StackPanel Margin="18,4,12,26" DockPanel.Dock="Top">
-                        <Border Style="{StaticResource ArcadeTag}">
-                            <TextBlock
-                                FontSize="22"
-                                Foreground="{StaticResource ArcadeBlack}"
-                                Style="{StaticResource ArcadeHeading}"
-                                Text="FGC" />
-                        </Border>
                         <TextBlock
-                            Margin="0,6,0,0"
                             FontSize="17"
                             Foreground="{StaticResource ArcadeLime}"
                             Text="KEYBOARD SPLITTER">
@@ -124,6 +166,50 @@
                             <TextBlock Style="{StaticResource NavLabel}" Text="LATENCY" />
                         </StackPanel>
                     </RadioButton>
+
+                    <!-- Zoom: Ctrl + plus / minus / 0 or Ctrl + mouse wheel do the same -->
+                    <StackPanel
+                        x:Name="ZoomPanel"
+                        Margin="18,14,8,0"
+                        DockPanel.Dock="Bottom">
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            FontSize="14"
+                            Foreground="{StaticResource ArcadeTextDim}"
+                            Text="ZOOM">
+                            <TextBlock.Style>
+                                <Style BasedOn="{StaticResource ArcadeHeading}" TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsCompact, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <StackPanel Orientation="Horizontal">
+                            <Button
+                                AutomationProperties.Name="Zoom out"
+                                Click="OnZoomOut"
+                                Content="-"
+                                IsEnabled="{Binding CanZoomOut}"
+                                Style="{StaticResource ZoomStepButton}"
+                                ToolTip="Zoom out (Ctrl + minus)" />
+                            <Button
+                                AutomationProperties.Name="Reset zoom"
+                                Click="OnZoomReset"
+                                Content="{Binding PercentText}"
+                                Style="{StaticResource ZoomButton}"
+                                ToolTip="Zoom level. Click to reset to 100% (Ctrl + 0)." />
+                            <Button
+                                AutomationProperties.Name="Zoom in"
+                                Click="OnZoomIn"
+                                Content="+"
+                                IsEnabled="{Binding CanZoomIn}"
+                                Style="{StaticResource ZoomStepButton}"
+                                ToolTip="Zoom in (Ctrl + plus)" />
+                        </StackPanel>
+                    </StackPanel>
 
                     <RadioButton
                         x:Name="NavDrivers"

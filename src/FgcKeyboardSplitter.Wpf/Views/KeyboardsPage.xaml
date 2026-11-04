@@ -29,7 +29,7 @@
                     Margin="0,2,0,0"
                     HorizontalAlignment="Left"
                     Style="{StaticResource ArcadeBody}"
-                    Text="Start a keyboard to turn it into its own virtual Xbox controller. While it runs, its keys are hidden from other programs." />
+                    Text="Press any key on a keyboard to add it here. Start it to turn it into its own virtual Xbox controller; while it runs, its keys are hidden from other programs." />
             </StackPanel>
 
             <!-- Driver warning -->
@@ -216,13 +216,10 @@
             <!-- List actions -->
             <WrapPanel Grid.Row="4" Margin="0,0,0,14">
                 <Button
-                    Command="{Binding RefreshCommand}"
-                    Content="REFRESH LIST"
-                    Style="{StaticResource ArcadeButton}" />
-                <Button
-                    Command="{Binding ToggleIdentifyCommand}"
-                    Content="{Binding IdentifyButtonText, Converter={StaticResource Upper}}"
-                    Style="{StaticResource ArcadeButton}" />
+                    Command="{Binding ClearIdleCommand}"
+                    Content="CLEAR IDLE"
+                    Style="{StaticResource ArcadeButton}"
+                    ToolTip="Remove the keyboards that are not running. They come back with their next key press." />
                 <Button
                     Command="{Binding StopAllCommand}"
                     Content="STOP ALL"
@@ -261,15 +258,40 @@
                                 </Viewbox>
 
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock
-                                        FontSize="28"
-                                        Style="{StaticResource ArcadeHeading}"
-                                        Text="{Binding Title, Converter={StaticResource Upper}}" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock
+                                            FontSize="28"
+                                            Style="{StaticResource ArcadeHeading}"
+                                            Text="{Binding Title, Converter={StaticResource Upper}}" />
+                                        <!-- Shown for a moment after a key press on this keyboard -->
+                                        <Border
+                                            Margin="14,0,0,0"
+                                            Padding="8,1"
+                                            VerticalAlignment="Center"
+                                            Background="{StaticResource ArcadeCyan}">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsFlashing}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock
+                                                FontSize="16"
+                                                Foreground="{StaticResource ArcadeBlack}"
+                                                Style="{StaticResource ArcadeHeading}"
+                                                Text="&lt; THAT'S YOU" />
+                                        </Border>
+                                    </StackPanel>
                                     <TextBlock
                                         FontSize="14"
                                         Foreground="{StaticResource ArcadeTextDim}"
                                         Text="{Binding Subtitle}"
-                                        TextTrimming="CharacterEllipsis" />
+                                        TextTrimming="CharacterEllipsis"
+                                        ToolTip="{Binding Subtitle}" />
                                 </StackPanel>
 
                                 <!-- READY / LIVE -->
@@ -378,19 +400,30 @@
                     </ListBox.ItemTemplate>
                 </ListBox>
 
+                <!-- Empty list: the join prompt fills the space -->
                 <TextBlock
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    FontSize="24"
-                    Foreground="{StaticResource ArcadeTextDim}"
-                    Text="NO KEYBOARDS FOUND - PLUG ONE IN AND HIT REFRESH">
+                    FontSize="34"
+                    Foreground="{StaticResource ArcadeCyan}"
+                    Text="PRESS ANY KEY TO JOIN">
                     <TextBlock.Style>
                         <Style BasedOn="{StaticResource ArcadeHeading}" TargetType="TextBlock">
                             <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding HasNoKeyboards}" Value="True">
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding HasNoKeyboards}" Value="True" />
+                                        <Condition Binding="{Binding IsWatching}" Value="True" />
+                                    </MultiDataTrigger.Conditions>
                                     <Setter Property="Visibility" Value="Visible" />
-                                </DataTrigger>
+                                    <MultiDataTrigger.EnterActions>
+                                        <BeginStoryboard x:Name="PressAnyKeyBlink" Storyboard="{StaticResource ArcadeBlink}" />
+                                    </MultiDataTrigger.EnterActions>
+                                    <MultiDataTrigger.ExitActions>
+                                        <StopStoryboard BeginStoryboardName="PressAnyKeyBlink" />
+                                    </MultiDataTrigger.ExitActions>
+                                </MultiDataTrigger>
                             </Style.Triggers>
                         </Style>
                     </TextBlock.Style>
@@ -400,22 +433,19 @@
             <!-- Messages -->
             <StackPanel Grid.Row="6" Margin="0,8,0,0">
                 <TextBlock
-                    FontSize="26"
                     Foreground="{StaticResource ArcadeCyan}"
-                    Text="PRESS ANY KEY ON THE KEYBOARD YOU WANT">
+                    Text="Press a key on another keyboard to add it, or on a listed one to highlight it.">
                     <TextBlock.Style>
-                        <Style BasedOn="{StaticResource ArcadeHeading}" TargetType="TextBlock">
+                        <Style BasedOn="{StaticResource ArcadeBody}" TargetType="TextBlock">
                             <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsIdentifying}" Value="True">
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding HasKeyboards}" Value="True" />
+                                        <Condition Binding="{Binding IsWatching}" Value="True" />
+                                    </MultiDataTrigger.Conditions>
                                     <Setter Property="Visibility" Value="Visible" />
-                                    <DataTrigger.EnterActions>
-                                        <BeginStoryboard x:Name="PressAnyKeyBlink" Storyboard="{StaticResource ArcadeBlink}" />
-                                    </DataTrigger.EnterActions>
-                                    <DataTrigger.ExitActions>
-                                        <StopStoryboard BeginStoryboardName="PressAnyKeyBlink" />
-                                    </DataTrigger.ExitActions>
-                                </DataTrigger>
+                                </MultiDataTrigger>
                             </Style.Triggers>
                         </Style>
                     </TextBlock.Style>

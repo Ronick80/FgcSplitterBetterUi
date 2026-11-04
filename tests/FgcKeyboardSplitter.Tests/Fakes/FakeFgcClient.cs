@@ -25,9 +25,15 @@ public sealed class FakeFgcClient : IFgcClient
 
     public Dictionary<string, LatencyStats> Latency { get; } = [];
 
-    public int IdentifyIndex { get; set; } = -1;
+    public FgcResult WatchResult { get; set; } = FgcResult.Ok;
 
-    public bool IdentifyActive { get; private set; }
+    public bool WatchActive { get; private set; }
+
+    /// <summary>Key presses the watch reports, oldest first. Only delivered while watching.</summary>
+    public Queue<KeyboardInfo> Presses { get; } = [];
+
+    /// <summary>Key press counters of running keyboards, as <see cref="GetKeyPressCount"/> reports them.</summary>
+    public Dictionary<string, uint> PressCounts { get; } = [];
 
     public Dictionary<string, Mapping> Mappings { get; } = [];
 
@@ -67,23 +73,38 @@ public sealed class FakeFgcClient : IFgcClient
         return FgcResult.Ok;
     }
 
-    public FgcResult IdentifyBegin()
+    public FgcResult WatchBegin()
     {
-        Calls.Add("IdentifyBegin");
-        IdentifyActive = true;
+        Calls.Add("WatchBegin");
+        WatchActive = WatchResult == FgcResult.Ok;
+        return WatchResult;
+    }
+
+    public FgcResult WatchEnd()
+    {
+        Calls.Add("WatchEnd");
+        WatchActive = false;
         return FgcResult.Ok;
     }
 
-    public FgcResult IdentifyCancel()
+    public FgcResult WatchPoll(out KeyboardInfo? pressed)
     {
-        Calls.Add("IdentifyCancel");
-        IdentifyActive = false;
+        pressed = WatchActive && Presses.Count > 0 ? Presses.Dequeue() : null;
         return FgcResult.Ok;
     }
 
-    public FgcResult IdentifyPoll(out int index)
+    /// <summary>Queues a key press on the listed keyboard with this hardware ID, as the watch reports it.</summary>
+    public void Press(string hardwareId) => Presses.Enqueue(Keyboards.Single(k => k.HardwareId == hardwareId));
+
+    public FgcResult GetKeyPressCount(string hardwareId, out uint count)
     {
-        index = IdentifyIndex;
+        if (!Running.Contains(hardwareId))
+        {
+            count = 0;
+            return FgcResult.NotRunning;
+        }
+
+        count = PressCounts.GetValueOrDefault(hardwareId);
         return FgcResult.Ok;
     }
 

@@ -9,11 +9,13 @@ public interface IFgcClient : IDisposable
 
     FgcResult GetKeyboards(out IReadOnlyList<KeyboardInfo> keyboards);
 
-    FgcResult IdentifyBegin();
+    /// <summary>Starts reporting every key press on idle keyboards. Their keys still reach Windows normally.</summary>
+    FgcResult WatchBegin();
 
-    FgcResult IdentifyCancel();
+    FgcResult WatchEnd();
 
-    FgcResult IdentifyPoll(out int index);
+    /// <summary>The oldest unreported key press: the keyboard interface it came from, or null when none is queued.</summary>
+    FgcResult WatchPoll(out KeyboardInfo? pressed);
 
     Mapping CreateDefaultMapping();
 
@@ -41,6 +43,12 @@ public interface IFgcClient : IDisposable
     /// <see cref="FgcResult.NotRunning"/> when the keyboard is not running.
     /// </summary>
     FgcResult GetHeldInputs(string hardwareId, out uint inputs);
+
+    /// <summary>
+    /// Key presses on a running keyboard since it started (repeats excluded; wraps around), so a change shows which
+    /// running keyboard is in use. <see cref="FgcResult.NotRunning"/> when the keyboard is not running.
+    /// </summary>
+    FgcResult GetKeyPressCount(string hardwareId, out uint count);
 
     FgcResult CheckControllerLimit(uint virtualRequested, out ControllerLimit limit);
 

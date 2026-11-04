@@ -113,6 +113,7 @@
             </TextBlock>
 
             <ScrollViewer
+                x:Name="Scroller"
                 Grid.Row="1"
                 Margin="0,16,0,0"
                 VerticalScrollBarVisibility="Auto"
@@ -240,8 +241,9 @@
                         Style="{StaticResource ArcadeButton}" />
                 </Grid>
 
-                <!-- Controller: as wide as the page; the page scrolls when it is taller than the window -->
+                <!-- Controller: as large as fits in the visible part of the page (see MappingPage.FitDiagrams) -->
                 <views:GamepadDiagram
+                    x:Name="Gamepad"
                     Grid.Row="2"
                     MaxWidth="1400"
                     Margin="0,8,6,0"
@@ -249,6 +251,7 @@
 
                 <!-- Arcade stick: the same inputs minus the analog sticks -->
                 <views:ArcadeStickDiagram
+                    x:Name="Arcade"
                     Grid.Row="2"
                     MaxWidth="1400"
                     Margin="0,8,6,0"
