@@ -7,6 +7,8 @@
     <AssemblyName>FgcKeyboardSplitter</AssemblyName>
     <RootNamespace>FgcKeyboardSplitter</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- The FGC tag from the title bar; regenerate with scripts\Make-AppIcon.ps1 -->
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <FgcCoreCopyExtras>true</FgcCoreCopyExtras>
   </PropertyGroup>
 

@@ -62,9 +62,9 @@
                                 BorderThickness="2"
                                 CornerRadius="6">
                                 <TextBlock
-                                    Margin="10,4,0,0"
+                                    Margin="12,4,0,0"
                                     VerticalAlignment="Top"
-                                    FontSize="15"
+                                    FontSize="22"
                                     Foreground="{StaticResource ArcadeTextDim}"
                                     Style="{StaticResource ArcadeHeading}"
                                     Text="{Binding Title}" />

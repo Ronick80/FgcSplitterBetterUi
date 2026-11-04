@@ -17,6 +17,8 @@ public partial class MainWindow : FluentWindow, INavigator
     private const double CompactSidebarWidth = 1000;
     private const double WideSidebar = 236;
     private const double NarrowSidebar = 84;
+    private const double DefaultWidth = 1400;
+    private const double DefaultHeight = 1000;
 
     private readonly Dictionary<Type, RadioButton> _navButtons;
     private IReadOnlyDictionary<Type, object> _pages = new Dictionary<Type, object>();
@@ -40,7 +42,7 @@ public partial class MainWindow : FluentWindow, INavigator
                 PageHost.RemoveBackEntry();
             }
         };
-        FitToWorkArea();
+        FitToWorkArea(1.0);
         SizeChanged += (_, _) => UpdateSidebar();
     }
 
@@ -65,6 +67,8 @@ public partial class MainWindow : FluentWindow, INavigator
     public void UseScale(UiScaleService scale)
     {
         _scale = scale;
+        ZoomPanel.DataContext = scale;
+        FitToWorkArea(scale.Scale); // before the window is shown, so a saved zoom gets a window big enough for it
         ApplyScale();
         scale.PropertyChanged += (_, _) => ApplyScale();
         PreviewKeyDown += OnPreviewKeyDown;
@@ -88,12 +92,15 @@ public partial class MainWindow : FluentWindow, INavigator
         }
     }
 
-    /// <summary>Keeps the first window inside small laptop screens, which may be only about 1280 x 680 usable.</summary>
-    private void FitToWorkArea()
+    /// <summary>
+    /// Sizes the first window for the zoom it opens with (the drawings on the Mapping page fit 1400 x 1000 at 100%),
+    /// kept inside small laptop screens, which may be only about 1280 x 680 usable.
+    /// </summary>
+    private void FitToWorkArea(double zoom)
     {
         Rect area = SystemParameters.WorkArea;
-        Width = Math.Min(Width, area.Width * 0.94);
-        Height = Math.Min(Height, area.Height * 0.94);
+        Width = Math.Min(DefaultWidth * zoom, area.Width * 0.94);
+        Height = Math.Min(DefaultHeight * zoom, area.Height * 0.94);
         MinWidth = Math.Min(MinWidth, area.Width);
         MinHeight = Math.Min(MinHeight, area.Height);
     }
@@ -115,6 +122,12 @@ public partial class MainWindow : FluentWindow, INavigator
         IsCompact = ActualWidth / (_scale?.Scale ?? 1.0) < CompactSidebarWidth;
         Sidebar.Width = IsCompact ? NarrowSidebar : WideSidebar;
     }
+
+    private void OnZoomIn(object sender, RoutedEventArgs e) => _scale?.ZoomIn();
+
+    private void OnZoomOut(object sender, RoutedEventArgs e) => _scale?.ZoomOut();
+
+    private void OnZoomReset(object sender, RoutedEventArgs e) => _scale?.Reset();
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {

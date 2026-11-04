@@ -25,10 +25,16 @@ public sealed partial class UiScaleService : ObservableObject
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "FgcKeyboardSplitter", "ui-settings.json");
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Percent))]
+    [NotifyPropertyChangedFor(nameof(Percent), nameof(PercentText), nameof(CanZoomIn), nameof(CanZoomOut))]
     private double _scale;
 
     public int Percent => (int)Math.Round(Scale * 100);
+
+    public string PercentText => $"{Percent}%";
+
+    public bool CanZoomIn => Scale < Levels[^1] - 0.001;
+
+    public bool CanZoomOut => Scale > Levels[0] + 0.001;
 
     public void ZoomIn() => SetLevel(Array.FindIndex(Levels, level => level > Scale + 0.001));
 

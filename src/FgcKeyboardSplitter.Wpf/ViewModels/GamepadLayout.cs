@@ -45,7 +45,7 @@ public static class GamepadLayout
     public const double ChipHeight = 36;
     public const double TopChipWidth = 96;
     public const double LetterBox = 34;
-    public const double GroupTitleHeight = 26;
+    public const double GroupTitleHeight = 34;
 
     // The controller body is drawn in its own 640-unit-wide space and shifted into the canvas by this offset.
     private const double OriginX = 380;
@@ -58,10 +58,10 @@ public static class GamepadLayout
     private const double RightX = 1040;
     private const double GroupWidth = 340;
     private const double ShoulderTop = 78;
-    private const double ShoulderHeight = 114;
+    private const double ShoulderHeight = 122;
     private const double MiddleTop = 210;
     private const double LowerTop = 384;
-    private const double CrossHeight = 156;
+    private const double CrossHeight = 164;
     private const double CellWidth = 98;
     private const double CellStep = 106;
     private const double RowStep = 42;
