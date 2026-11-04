@@ -34,6 +34,11 @@ foreach ($file in $required) {
     if (-not (Test-Path (Join-Path $stage $file))) { throw "The package is missing $file" }
 }
 Copy-Item (Join-Path $root 'README.md') $stage
+# The README's screenshots, at the same relative path so its image links work in the extracted folder too.
+$images = Join-Path $root 'docs\images'
+if (-not (Test-Path (Join-Path $images '*.png'))) { throw "No README screenshots found in $images" }
+New-Item -ItemType Directory -Path (Join-Path $stage 'docs') | Out-Null
+Copy-Item $images (Join-Path $stage 'docs\images') -Recurse
 
 Compress-Archive -Path $stage -DestinationPath $zip
 $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
