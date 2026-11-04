@@ -22,6 +22,7 @@ keyboards, or one player can use a keyboard as a fight stick in any game that su
   - [Latency](#latency)
   - [Good to know](#good-to-know)
 - [Development](#development)
+- [Ideas for later](#ideas-for-later)
 
 ## Using the app
 
@@ -241,3 +242,21 @@ and attaches it to a GitHub release. The **CI** workflow runs the same tests on 
 
 Take the URL of the release zip and the SHA-256 from the release's `.sha256` file, put them in `core.lock.json`, then
 run `scripts\Get-FgcCore.ps1`. It replaces `core/` only when the pinned version or checksum changed.
+
+## Ideas for later
+
+Features that would make the app more useful, none of which exist yet. Some need engine changes in
+[FGC Keyboard Splitter](https://github.com/Ronick80/FgcKeyboardSplitter) as well.
+
+- **Panic key to stop everything.** A running keyboard cannot type, so a fixed key combination on it that runs
+  **Stop all** would help when a game has captured the mouse.
+- **Choice of opposing-direction rule (SOCD).** Today left + right gives neutral and up + down gives up. Tournaments
+  use different rules (for example last input wins), so a per-profile setting would matter for competitive play.
+- **Choosing which keyboard is P1 to P4.** The slot order currently follows the order keyboards are started in, and
+  some games care which controller is player 1.
+- **Remembering the setup.** Add and start known keyboards with their last profile when the app opens, with optional
+  start with Windows and minimize to the system tray.
+- **Profile sharing.** An "Open profiles folder" button and import / export, so players can trade layouts.
+- **Automatic profile switching per game**, based on which game is running.
+- **Shared keys on the drawings.** Show the **Shared key** warning on the Controller and Arcade stick views, not only
+  in the List view.
