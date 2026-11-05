@@ -640,4 +640,44 @@ public class MappingViewModelTests
         Assert.Equal("Main", _vm.CurrentProfileText);
         Assert.True(_vm.IsDirty);
     }
+
+    [Fact]
+    public async Task ChangesShowOnTheKeyboardsCard()
+    {
+        AddProfile("Main", 0x30);
+        _client.LastUsed[Id] = "Main";
+        Select();
+        KeyboardProfile card = _keyboards.Profiles.For(Id);
+        Assert.Equal("Main", card.DisplayName);
+
+        _vm.ResetDefaultsCommand.Execute(null);
+        Assert.True(card.Dirty);
+
+        _vm.SaveCommand.Execute(null);
+        Assert.False(card.Dirty);
+
+        await _vm.DeleteCommand.ExecuteAsync(null);
+        Assert.Equal("No profile", card.DisplayName);
+    }
+
+    [Fact]
+    public void TheKeyboardMenuSwitchesTheMapping()
+    {
+        AddProfile("Main", 0x30);
+        _client.LastUsed[Id] = "Main";
+        _client.Mappings[Id] = MappingWith(0x30);
+        Select();
+        var other = new KeyboardItem(@"HID\KB2", "Keyboard 2");
+
+        _vm.SelectKeyboardCommand.Execute(other);
+
+        Assert.Same(other, _vm.Keyboard);
+        Assert.Equal("(no profile)", _vm.CurrentProfileText);
+        Assert.Equal(_client.CreateDefaultMapping()[XboxInput.A], Row(XboxInput.A).KeyCode);
+
+        _vm.SelectKeyboardCommand.Execute(_keyboard);
+
+        Assert.Equal("Main", _vm.CurrentProfileText);
+        Assert.Equal(0x30, Row(XboxInput.A).KeyCode);
+    }
 }
