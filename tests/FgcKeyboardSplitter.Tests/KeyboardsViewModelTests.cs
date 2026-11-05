@@ -360,5 +360,33 @@ public class KeyboardsViewModelTests
         Assert.Equal(1, _navigator.DriversShown);
     }
 
+    [Fact]
+    public void AJoinedKeyboardShowsTheProfileItStartsFrom()
+    {
+        _client.SaveProfile(FirstId, "Main", _client.CreateDefaultMapping());
+
+        KeyboardItem first = Join(FirstId);
+        KeyboardItem second = Join(SecondId);
+
+        Assert.Equal("Main", first.Profile?.DisplayName);
+        Assert.False(first.Profile?.Dirty);
+        Assert.Equal("No profile", second.Profile?.DisplayName);
+    }
+
+    [Fact]
+    public void AKeyboardThatJoinsAgainKeepsItsProfileState()
+    {
+        KeyboardItem first = Join(FirstId);
+        first.Profile!.Current = "Edited";
+        first.Profile.Dirty = true;
+
+        _vm.ClearIdleCommand.Execute(null);
+        KeyboardItem again = Join(FirstId);
+
+        Assert.NotSame(first, again);
+        Assert.Same(first.Profile, again.Profile);
+        Assert.Same(_vm.Profiles.For(FirstId), again.Profile);
+    }
+
     private void StartNow(KeyboardItem keyboard) => _vm.StartCommand.ExecuteAsync(keyboard).GetAwaiter().GetResult();
 }

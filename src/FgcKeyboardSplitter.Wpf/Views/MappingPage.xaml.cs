@@ -24,6 +24,17 @@ public partial class MappingPage : Page
         LayoutUpdated += (_, _) => FitDiagrams();
     }
 
+    /// <summary>The keyboard menu opens below its arrow on a left click (a context menu otherwise needs a right click).</summary>
+    private void OnKeyboardMenuClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { ContextMenu: { } menu } button)
+        {
+            menu.PlacementTarget = button;
+            menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            menu.IsOpen = true;
+        }
+    }
+
     /// <summary>
     /// The diagrams scale to the page width, and inside the scrolling page nothing limits their height, so a short
     /// window would cut off their bottom. Limiting them to the height left below the profile card keeps the whole

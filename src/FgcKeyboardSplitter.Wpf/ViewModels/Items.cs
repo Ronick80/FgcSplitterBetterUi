@@ -35,6 +35,9 @@ public sealed partial class KeyboardItem(string hardwareId, string title, string
 
     public string Subtitle => HardwareId;
 
+    /// <summary>The profile its mapping came from, shown on its card; see <see cref="KeyboardProfiles"/>.</summary>
+    public KeyboardProfile? Profile { get; init; }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(StatusText), nameof(StatusKind))]
     private bool _isRunning;

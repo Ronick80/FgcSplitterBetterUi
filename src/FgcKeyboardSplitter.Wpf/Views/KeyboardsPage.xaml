@@ -286,6 +286,42 @@
                                                 Text="&lt; THAT'S YOU" />
                                         </Border>
                                     </StackPanel>
+                                    <!-- The profile Start uses, so players can check it before they start -->
+                                    <StackPanel Margin="0,2,0,2" Orientation="Horizontal">
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            FontSize="16"
+                                            Foreground="{StaticResource ArcadeTextDim}"
+                                            Style="{StaticResource ArcadeHeading}"
+                                            Text="PROFILE" />
+                                        <TextBlock
+                                            Margin="10,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontSize="18"
+                                            Foreground="{StaticResource ArcadeLime}"
+                                            Style="{StaticResource ArcadeHeading}"
+                                            Text="{Binding Profile.DisplayName, Converter={StaticResource Upper}}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <Border
+                                            Margin="12,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource ArcadeStatusTag}"
+                                            Tag="{x:Static vm:StatusKind.Warning}"
+                                            ToolTip="The mapping was changed since this profile was loaded. Starting uses the changed mapping.">
+                                            <Border.Visibility>
+                                                <Binding FallbackValue="Collapsed" Path="Profile.Dirty">
+                                                    <Binding.Converter>
+                                                        <BooleanToVisibilityConverter />
+                                                    </Binding.Converter>
+                                                </Binding>
+                                            </Border.Visibility>
+                                            <TextBlock
+                                                FontSize="13"
+                                                Foreground="{StaticResource ArcadeBlack}"
+                                                Style="{StaticResource ArcadeHeading}"
+                                                Text="UNSAVED CHANGES" />
+                                        </Border>
+                                    </StackPanel>
                                     <TextBlock
                                         FontSize="14"
                                         Foreground="{StaticResource ArcadeTextDim}"

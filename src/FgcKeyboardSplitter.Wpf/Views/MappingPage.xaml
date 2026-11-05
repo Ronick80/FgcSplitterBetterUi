@@ -22,16 +22,55 @@
                     Content="MAPPING"
                     Style="{StaticResource ArcadeHeader}"
                     Tag="BUTTON CONFIG" />
-                <StackPanel
-                    Margin="0,2,0,0"
-                    Orientation="Horizontal"
-                    Visibility="{Binding HasKeyboard, Converter={StaticResource Visible}}">
+                <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
                     <TextBlock
                         VerticalAlignment="Center"
-                        FontSize="24"
-                        Foreground="{StaticResource ArcadeText}"
-                        Style="{StaticResource ArcadeHeading}"
-                        Text="{Binding Keyboard.Title, Converter={StaticResource Upper}}" />
+                        FontSize="24">
+                        <TextBlock.Style>
+                            <Style BasedOn="{StaticResource ArcadeHeading}" TargetType="TextBlock">
+                                <Setter Property="Text" Value="{Binding Keyboard.Title, Converter={StaticResource Upper}}" />
+                                <Setter Property="Foreground" Value="{StaticResource ArcadeText}" />
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding HasKeyboard}" Value="False" />
+                                            <Condition Binding="{Binding Sessions.HasKeyboards}" Value="True" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Text" Value="SELECT A KEYBOARD" />
+                                        <Setter Property="Foreground" Value="{StaticResource ArcadeTextDim}" />
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <!-- Opens a menu of the keyboards that joined on the Keyboards page -->
+                    <Button
+                        Margin="12,0,0,0"
+                        Padding="10,10"
+                        VerticalAlignment="Center"
+                        AutomationProperties.Name="Choose keyboard"
+                        Click="OnKeyboardMenuClick"
+                        Style="{StaticResource ArcadeButton}"
+                        ToolTip="Edit another keyboard"
+                        Visibility="{Binding Sessions.HasKeyboards, Converter={StaticResource Visible}}">
+                        <Path
+                            Data="M 0,0 L 12,0 L 6,7 Z"
+                            Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                        <Button.ContextMenu>
+                            <ContextMenu ItemsSource="{Binding Sessions.Keyboards}">
+                                <ContextMenu.ItemContainerStyle>
+                                    <Style BasedOn="{StaticResource {x:Type MenuItem}}" TargetType="MenuItem">
+                                        <Setter Property="Header" Value="{Binding Title, Converter={StaticResource Upper}}" />
+                                        <Setter Property="Command" Value="{Binding DataContext.SelectKeyboardCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                        <Setter Property="CommandParameter" Value="{Binding}" />
+                                    </Style>
+                                </ContextMenu.ItemContainerStyle>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+
+                    <StackPanel Orientation="Horizontal" Visibility="{Binding HasKeyboard, Converter={StaticResource Visible}}">
                     <Border
                         Margin="14,0,0,0"
                         Style="{StaticResource ArcadeStatusTag}"
@@ -87,6 +126,7 @@
                         Text="{Binding Sessions.StatusMessage}"
                         TextWrapping="Wrap"
                         Visibility="{Binding Sessions.StatusIsError, Converter={StaticResource Visible}}" />
+                    </StackPanel>
                 </StackPanel>
             </StackPanel>
 
@@ -98,12 +138,15 @@
                 VerticalAlignment="Top"
                 FontSize="24"
                 Foreground="{StaticResource ArcadeTextDim}"
-                Text="SELECT A KEYBOARD ON THE KEYBOARDS PAGE TO EDIT ITS MAPPING"
                 TextAlignment="Center"
                 TextWrapping="Wrap">
                 <TextBlock.Style>
                     <Style BasedOn="{StaticResource ArcadeHeading}" TargetType="TextBlock">
+                        <Setter Property="Text" Value="PRESS A KEY ON A KEYBOARD ON THE KEYBOARDS PAGE TO ADD IT, THEN EDIT ITS MAPPING HERE" />
                         <Style.Triggers>
+                            <DataTrigger Binding="{Binding Sessions.HasKeyboards}" Value="True">
+                                <Setter Property="Text" Value="SELECT A KEYBOARD ABOVE TO EDIT ITS MAPPING" />
+                            </DataTrigger>
                             <DataTrigger Binding="{Binding HasKeyboard}" Value="True">
                                 <Setter Property="Visibility" Value="Collapsed" />
                             </DataTrigger>

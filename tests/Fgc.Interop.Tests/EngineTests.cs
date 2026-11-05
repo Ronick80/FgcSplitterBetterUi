@@ -37,13 +37,25 @@ public class EngineTests(EngineFixture engine)
     }
 
     [Fact]
-    public void Lists2XkoDefaultFirstAsAReadOnlyProfile()
+    public void ListsTheBuiltInProfilesFirstAsReadOnly()
     {
         Assert.Equal(FgcResult.Ok, _client.GetProfileNames(@"TEST\NO_SUCH_KEYBOARD", out IReadOnlyList<string> names));
 
-        Assert.Equal("2XKO Default", names[0]);
+        Assert.Equal(["Default", "2XKO Default"], names.Take(2));
+        Assert.True(_client.IsReadOnlyProfile("default"));
         Assert.True(_client.IsReadOnlyProfile("2xko default"));
         Assert.False(_client.IsReadOnlyProfile("Some profile"));
+    }
+
+    [Fact]
+    public void ANewKeyboardStartsFromTheDefaultProfile()
+    {
+        string hardwareId = @"FGC_INTEROP_TEST\" + Guid.NewGuid().ToString("N");
+
+        Assert.Equal(FgcResult.Ok, _client.GetLastUsedProfile(hardwareId, out string lastUsed));
+        Assert.Equal("Default", lastUsed);
+        Assert.Equal(FgcResult.Ok, _client.GetMapping(hardwareId, out Mapping current));
+        Assert.Equal(FgcClient.GetDefaultMapping(), current);
     }
 
     [Fact]
@@ -117,7 +129,7 @@ public class EngineTests(EngineFixture engine)
 
             Assert.Equal(FgcResult.Ok, _client.SaveProfile(hardwareId, "First", mapping));
             Assert.Equal(FgcResult.Ok, _client.GetProfileNames(hardwareId, out IReadOnlyList<string> names));
-            Assert.Equal(["2XKO Default", "First"], names);
+            Assert.Equal(["Default", "2XKO Default", "First"], names);
             Assert.Equal(FgcResult.Ok, _client.GetLastUsedProfile(hardwareId, out string lastUsed));
             Assert.Equal("First", lastUsed);
 
@@ -130,7 +142,8 @@ public class EngineTests(EngineFixture engine)
             Assert.Equal(FgcResult.ReadOnly, _client.DeleteProfile(hardwareId, "2XKO Default"));
             Assert.Equal(FgcResult.AlreadyExists, _client.RenameProfile(hardwareId, "Second", "2XKO Default"));
             Assert.Equal(FgcResult.Ok, _client.DeleteProfile(hardwareId, "Second"));
-            Assert.Equal(FgcResult.NotFound, _client.GetLastUsedProfile(hardwareId, out _));
+            Assert.Equal(FgcResult.Ok, _client.GetLastUsedProfile(hardwareId, out string afterDelete));
+            Assert.Equal("Default", afterDelete);
         }
         finally
         {

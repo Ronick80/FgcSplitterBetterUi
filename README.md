@@ -71,6 +71,8 @@ the list.
 - **Which one is mine?** Press a key on a listed keyboard and it is selected and flashes **< THAT'S YOU**. This also
   works for keyboards that are already running, so players can check which keyboard is theirs at any time.
 - **More keyboards:** press a key on each one. Identical keyboards are numbered ("GMMK PRO", "GMMK PRO #2").
+- **Profile:** each keyboard shows the profile it will start with, plus an **Unsaved changes** tag when its mapping
+  was changed since, so you can check it at a glance before clicking **Start**.
 - **Clear idle** removes the keyboards that are not running; they come back with their next key press.
 - Key presses are only watched for while the Keyboards page is open and the app window is active, so leaving the app
   open on this page does not affect your keyboards while you play.
@@ -79,7 +81,8 @@ Click **Edit mapping** on a keyboard to choose which key does what.
 
 ### 3. Map your buttons
 
-The **Mapping** page shows the keyboard selected on the Keyboards page. Three views show the same mapping; pick
+The **Mapping** page shows the keyboard selected on the Keyboards page. To edit another keyboard, click the arrow next to
+the keyboard's name and pick it from the menu, which lists every keyboard on the Keyboards page. Three views show the same mapping; pick
 whichever is easiest to read.
 
 | Controller | Arcade stick | List |
@@ -102,7 +105,7 @@ so you can see which button a label belongs to.
 - **Right-click** a button or label for **Pick a key from a list** (useful for keys that are awkward to press while
   the app has focus) or **Clear** to unbind the input. In the List view, the **...** button next to each key opens
   the same key list.
-- **Reset to defaults** puts back the app's default layout.
+- **Reset to defaults** puts back the app's default layout (the same as the **Default** profile).
 - One key can drive several inputs at once. The List view marks such keys with **Shared key**, so an accidental
   double binding is easy to spot.
 
@@ -111,7 +114,8 @@ Changes take effect right away, but they are not saved to a profile until you sa
 ### Profiles
 
 A profile is a saved mapping with a name. Each keyboard has its own profiles, and the profile you used last loads
-automatically the next time you select or start that keyboard.
+automatically the next time you select or start that keyboard. A keyboard that has never used a profile starts from
+**Default**.
 
 ![Saving the current mapping under a new name](docs/images/profile-save-as.png)
 
@@ -122,7 +126,8 @@ automatically the next time you select or start that keyboard.
 | **Save as** | Saves the current mapping under a new name (asks before replacing an existing profile). |
 | **Rename** / **Delete** | Rename or remove the current profile. Deleting keeps the mapping in use, it is just no longer saved. |
 
-**Built-in profiles** are marked **Built-in** and cannot be changed, renamed or deleted. **2XKO Default** puts 2XKO's
+**Built-in profiles** are marked **Built-in** and cannot be changed, renamed or deleted. **Default** is the app's
+default layout, the one **Reset to defaults** puts back. **2XKO Default** puts 2XKO's
 default keyboard layout on the buttons of 2XKO's default arcade stick layout. To adjust it, use **Save as** to make
 your own copy first.
 

@@ -32,6 +32,7 @@ public sealed partial class KeyboardsViewModel : ObservableObject
         _engine = engine;
         _navigator = navigator;
         _selection = selection;
+        Profiles = new KeyboardProfiles(engine.Client);
         _selection.PropertyChanged += (_, _) => OnPropertyChanged(nameof(Selected));
         for (int i = 0; i < MaxControllers; i++)
         {
@@ -50,6 +51,9 @@ public sealed partial class KeyboardsViewModel : ObservableObject
 
     /// <summary>Keyboards that joined with a key press, one per physical device.</summary>
     public ObservableCollection<KeyboardItem> Keyboards { get; } = [];
+
+    /// <summary>Each keyboard's current profile, shared with the Mapping page.</summary>
+    public KeyboardProfiles Profiles { get; }
 
     public ObservableCollection<Notice> Notices { get; } = [];
 
@@ -254,7 +258,10 @@ public sealed partial class KeyboardsViewModel : ObservableObject
         KeyboardItem? keyboard = Keyboards.FirstOrDefault(k => k.DeviceKey == deviceKey);
         if (keyboard is null)
         {
-            keyboard = new KeyboardItem(info.HardwareId, TitleFor(info.ProductName), deviceKey, ProductNameOf(info.ProductName));
+            keyboard = new KeyboardItem(info.HardwareId, TitleFor(info.ProductName), deviceKey, ProductNameOf(info.ProductName))
+            {
+                Profile = Profiles.For(info.HardwareId),
+            };
             Keyboards.Add(keyboard);
             OnKeyboardsChanged();
             UpdateRunning();

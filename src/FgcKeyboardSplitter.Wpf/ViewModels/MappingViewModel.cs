@@ -112,7 +112,6 @@ public sealed partial class MappingViewModel : ObservableObject
     private readonly KeyboardSelection _selection;
     private readonly IKeyCapture _capture;
     private readonly IDialogService _dialogs;
-    private readonly Dictionary<string, ProfileState> _states = [];
     private readonly DispatcherTimer _heldTimer;
     private Mapping _mapping = new();
     private MappingRow? _bindingRow;
@@ -153,13 +152,6 @@ public sealed partial class MappingViewModel : ObservableObject
         };
         _capture.KeyPressed += OnKeyPressed;
         _capture.Cancelled += CancelBinding;
-    }
-
-    private sealed class ProfileState
-    {
-        public string Current { get; set; } = string.Empty;
-
-        public bool Dirty { get; set; }
     }
 
     /// <summary>How often the held inputs are read while testing a running keyboard: about once per frame.</summary>
@@ -207,7 +199,8 @@ public sealed partial class MappingViewModel : ObservableObject
 
     public bool HasMessage => Message.Length > 0;
 
-    private ProfileState? State => Keyboard is { } keyboard && _states.TryGetValue(keyboard.HardwareId, out ProfileState? state) ? state : null;
+    // Shared with the Keyboards page, whose cards show it.
+    private KeyboardProfile? State => Keyboard is { } keyboard ? Sessions.Profiles.For(keyboard.HardwareId) : null;
 
     partial void OnMessageChanged(string value) => OnPropertyChanged(nameof(HasMessage));
 
@@ -235,6 +228,16 @@ public sealed partial class MappingViewModel : ObservableObject
     {
         _pageVisible = visible;
         UpdateHeldPolling();
+    }
+
+    /// <summary>Switches the page to another keyboard, the same as selecting it on the Keyboards page.</summary>
+    [RelayCommand]
+    private void SelectKeyboard(KeyboardItem? keyboard)
+    {
+        if (keyboard is not null)
+        {
+            Sessions.Selected = keyboard;
+        }
     }
 
     [RelayCommand(CanExecute = nameof(CanEditKey))]
@@ -500,14 +503,6 @@ public sealed partial class MappingViewModel : ObservableObject
             if (_engine.Client.GetMapping(keyboard.HardwareId, out Mapping mapping) == FgcResult.Ok)
             {
                 _mapping = mapping;
-            }
-
-            if (!_states.ContainsKey(keyboard.HardwareId))
-            {
-                _states[keyboard.HardwareId] = new ProfileState
-                {
-                    Current = _engine.Client.GetLastUsedProfile(keyboard.HardwareId, out string lastUsed) == FgcResult.Ok ? lastUsed : string.Empty,
-                };
             }
 
             RefreshProfiles();
